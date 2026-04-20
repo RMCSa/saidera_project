@@ -11,6 +11,7 @@ import java.util.Date;
 public class UserForm extends BaseDialog {
     private JTextField nameField;
     private JTextField emailField;
+    private JPasswordField passField;
     private JComboBox<String> roleCombo;
     private Runnable onSaveCallback;
 
@@ -32,9 +33,13 @@ public class UserForm extends BaseDialog {
         emailField.setPreferredSize(new Dimension(0, 40));
         addField("E-MAIL PROFISSIONAL", emailField, gbc, 1);
 
+        passField = new JPasswordField("muda123"); // Default password
+        passField.setPreferredSize(new Dimension(0, 40));
+        addField("SENHA TEMPORÁRIA", passField, gbc, 2);
+
         roleCombo = new JComboBox<>(new String[]{"Admin", "Gerente", "Caixa", "Garçom"});
         roleCombo.setPreferredSize(new Dimension(0, 40));
-        addField("CARGO / PERFIL", roleCombo, gbc, 2);
+        addField("CARGO / PERFIL", roleCombo, gbc, 3);
 
         // Buttons
         JButton cancelBtn = createSecondaryButton("Cancelar");
@@ -50,9 +55,10 @@ public class UserForm extends BaseDialog {
     private void saveUser(ActionEvent e) {
         String name = nameField.getText();
         String email = emailField.getText();
+        String password = new String(passField.getPassword());
         String role = (String) roleCombo.getSelectedItem();
 
-        if (name.isEmpty() || email.isEmpty()) {
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Por favor, preencha todos os campos.");
             return;
         }
@@ -60,7 +66,7 @@ public class UserForm extends BaseDialog {
         String id = name.substring(0, 1).toUpperCase() + name.split(" ")[name.split(" ").length - 1].substring(0, 1).toUpperCase();
         String dateStr = new SimpleDateFormat("dd MMM, yyyy").format(new Date());
         
-        User u = new User(id, name, email, role, dateStr);
+        User u = new User(id, name, email, role, dateStr, password);
         DataRepository.getInstance().addUser(u);
 
         if (onSaveCallback != null) onSaveCallback.run();

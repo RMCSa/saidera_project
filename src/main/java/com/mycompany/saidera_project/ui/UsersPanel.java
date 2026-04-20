@@ -2,6 +2,7 @@ package com.mycompany.saidera_project.ui;
 
 import com.mycompany.saidera_project.data.DataRepository;
 import com.mycompany.saidera_project.models.User;
+import com.mycompany.saidera_project.security.SessionManager;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -38,6 +39,15 @@ public class UsersPanel extends JPanel {
         JButton addBtn = new JButton("+ Novo Usuário");
         addBtn.setBackground(UIPalette.AMBER);
         addBtn.setFont(UIPalette.FONT_LABEL);
+        
+        User currentUser = SessionManager.getInstance().getCurrentUser();
+        boolean isAdmin = currentUser != null && "Admin".equalsIgnoreCase(currentUser.getRole());
+        
+        addBtn.setEnabled(isAdmin);
+        if (!isAdmin) {
+            addBtn.setToolTipText("Apenas administradores podem cadastrar novos usuários.");
+        }
+
         addBtn.addActionListener(e -> {
             Window owner = SwingUtilities.getWindowAncestor(this);
             new UserForm((Frame) owner, this::refreshTable).setVisible(true);
@@ -76,6 +86,10 @@ public class UsersPanel extends JPanel {
         TableActionCell actionCell = new TableActionCell(
             e -> JOptionPane.showMessageDialog(this, "Editar funcionalidade em breve!"),
             e -> {
+                if (!isAdmin) {
+                    JOptionPane.showMessageDialog(this, "Você não tem permissão para excluir usuários.", "Acesso Restrito", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 int row = table.getSelectedRow();
                 String id = (String) model.getValueAt(row, 0);
                 int confirm = JOptionPane.showConfirmDialog(this, "Excluir este usuário?", "Confirmar", JOptionPane.YES_NO_OPTION);

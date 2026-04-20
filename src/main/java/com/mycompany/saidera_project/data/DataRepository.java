@@ -28,11 +28,12 @@ public class DataRepository {
     }
 
     private void initializeMockData() {
-        // Mock Users
-        users.add(new User("AM", "André Machado", "andre.machado@choperia.com.br", "Admin", "12 Jan, 2023"));
-        users.add(new User("BS", "Beatriz Silva", "beatriz.silva@choperia.com.br", "Caixa", "05 Mar, 2023"));
-        users.add(new User("CR", "Carlos Roberto", "carlos.r@choperia.com.br", "Garçom", "18 Out, 2023"));
-        users.add(new User("FP", "Fernanda Pires", "fernanda.pires@choperia.com.br", "Garçom", "02 Jan, 2024"));
+        // Mock Users (Password pattern: firstName123)
+        users.add(new User("1", "Rafael Moreira", "rafael.moreira@choperia.com.br", "Admin", "10 Jan, 2024", "rafael123"));
+        users.add(new User("2", "Vitor Henrique", "vitor.henrique@choperia.com.br", "Gerente", "15 Fev, 2024", "vitor123"));
+        users.add(new User("3", "Caio Damaceno", "caio.damaceno@choperia.com.br", "Caixa", "02 Mar, 2024", "caio123"));
+        users.add(new User("4", "Victor Maritan", "victor.maritan@choperia.com.br", "Garçom", "12 Mar, 2024", "victor123"));
+        users.add(new User("5", "Guilherme Rodrigues", "guilherme.r@choperia.com.br", "Garçom", "20 Mar, 2024", "guilherme123"));
 
         // Mock Products
         products.add(new Product("01", "IPA Imperial Sunset", "Chopps", 28.00, true));
@@ -51,6 +52,15 @@ public class DataRepository {
     public List<User> getUsers() { return new ArrayList<>(users); }
     public List<Product> getProducts() { return new ArrayList<>(products); }
     public List<StockItem> getInventory() { return new ArrayList<>(inventory); }
+
+    public User authenticate(String email, String password) {
+        for (User u : users) {
+            if (u.getEmail().equalsIgnoreCase(email) && u.getPassword().equals(password)) {
+                return u;
+            }
+        }
+        return null;
+    }
 
     // Mutation methods
     public void addProduct(Product p) { products.add(p); }

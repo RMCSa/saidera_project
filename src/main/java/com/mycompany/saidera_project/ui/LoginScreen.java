@@ -1,6 +1,9 @@
 package com.mycompany.saidera_project.ui;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import com.mycompany.saidera_project.data.DataRepository;
+import com.mycompany.saidera_project.models.User;
+import com.mycompany.saidera_project.security.SessionManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -129,11 +132,25 @@ public class LoginScreen extends JFrame {
         rightPanel.add(sslPanel, gbcR);
 
         loginBtn.addActionListener((ActionEvent e) -> {
-            // Simplified login logic: open MainFrame
-            dispose();
-            SwingUtilities.invokeLater(() -> {
-                new MainFrame().setVisible(true);
-            });
+            String email = userField.getText();
+            String password = new String(passField.getPassword());
+
+            if (email.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Por favor, preencha as credenciais.", "Erro de Login", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            User authenticatedUser = DataRepository.getInstance().authenticate(email, password);
+
+            if (authenticatedUser != null) {
+                SessionManager.getInstance().login(authenticatedUser);
+                dispose();
+                SwingUtilities.invokeLater(() -> {
+                    new MainFrame().setVisible(true);
+                });
+            } else {
+                JOptionPane.showMessageDialog(this, "E-mail ou senha inválidos.", "Acesso Negado", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         mainPanel.add(leftPanel);

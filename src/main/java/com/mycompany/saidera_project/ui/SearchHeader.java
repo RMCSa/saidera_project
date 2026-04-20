@@ -1,45 +1,44 @@
 package com.mycompany.saidera_project.ui;
 
+import com.mycompany.saidera_project.models.User;
+import com.mycompany.saidera_project.security.SessionManager;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * Reusable header with search bar and profile info.
+ * Clean top header with profile info and actions.
  */
 public class SearchHeader extends JPanel {
 
-    public SearchHeader(String searchPlaceholder) {
+    public SearchHeader() {
         setLayout(new BorderLayout());
         setOpaque(true);
         setBackground(Color.WHITE);
-        setBorder(new EmptyBorder(10, 40, 10, 40));
-        setPreferredSize(new Dimension(0, 70));
-
-        // Search Bar Area
-        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
-        searchBar.setOpaque(false);
-        
-        JTextField searchField = new JTextField(searchPlaceholder);
-        searchField.setPreferredSize(new Dimension(400, 35));
-        searchField.setForeground(Color.GRAY);
-        searchBar.add(new JLabel("🔍"));
-        searchBar.add(searchField);
-        
-        add(searchBar, BorderLayout.WEST);
+        setPreferredSize(new Dimension(0, 60));
 
         // Right side: Notifications, Settings, Profile
-        JPanel rightArea = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 15));
+        JPanel rightArea = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 12));
         rightArea.setOpaque(false);
         
-        rightArea.add(new JLabel("🔔"));
-        rightArea.add(new JLabel("⚙️"));
+        // rightArea.add(new JLabel("🔔"));
+        // rightArea.add(new JLabel("⚙️"));
         
+        User activeUser = SessionManager.getInstance().getCurrentUser();
+        String userName = (activeUser != null) ? activeUser.getName() : "Não Identificado";
+        String userRole = (activeUser != null) ? activeUser.getRole() : "Convidado";
+
         JPanel profile = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         profile.setOpaque(false);
-        JLabel name = new JLabel("Gerente Geral");
-        name.setFont(UIPalette.FONT_LABEL);
-        profile.add(name);
+        JLabel nameLabel = new JLabel(userName);
+        nameLabel.setFont(UIPalette.FONT_LABEL);
+        profile.add(nameLabel);
+        
+        JLabel roleLabel = new JLabel("(" + userRole + ")");
+        roleLabel.setFont(UIPalette.FONT_LABEL.deriveFont(Font.PLAIN, 10f));
+        roleLabel.setForeground(Color.GRAY);
+        profile.add(roleLabel);
+
         JLabel avatar = new JLabel("👤");
         profile.add(avatar);
         
@@ -49,7 +48,7 @@ public class SearchHeader extends JPanel {
         // Bottom border line
         setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xE0E0E0)),
-            new EmptyBorder(10, 40, 10, 40)
+            new EmptyBorder(0, 40, 0, 40)
         ));
     }
 }

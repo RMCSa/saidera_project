@@ -76,7 +76,7 @@ public class MainFrame extends JFrame {
         // RIGHT CONTAINER (Header + Content)
         JPanel rightContainer = new JPanel(new BorderLayout());
         
-        SearchHeader topHeader = new SearchHeader("Buscar no sistema (produtos, usuários, estoque)...");
+        SearchHeader topHeader = new SearchHeader();
         rightContainer.add(topHeader, BorderLayout.NORTH);
 
         contentArea.setBackground(UIPalette.BACKGROUND);
