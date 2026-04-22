@@ -40,15 +40,19 @@ public class BaseDialog extends JDialog {
     }
 
     protected void addField(String label, JComponent field, GridBagConstraints gbc, int row) {
+        addField(label, field, gbc, row, contentPanel);
+    }
+
+    protected void addField(String label, JComponent field, GridBagConstraints gbc, int row, Container container) {
         gbc.gridy = row * 2;
         gbc.insets = new Insets(0, 0, 5, 0);
         JLabel l = new JLabel(label);
         l.setFont(UIPalette.FONT_LABEL);
-        contentPanel.add(l, gbc);
+        container.add(l, gbc);
 
         gbc.gridy = row * 2 + 1;
         gbc.insets = new Insets(0, 0, 20, 0);
-        contentPanel.add(field, gbc);
+        container.add(field, gbc);
     }
 
     protected JButton createPrimaryButton(String text) {

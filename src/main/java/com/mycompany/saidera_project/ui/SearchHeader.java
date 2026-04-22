@@ -2,6 +2,7 @@ package com.mycompany.saidera_project.ui;
 
 import com.mycompany.saidera_project.models.User;
 import com.mycompany.saidera_project.security.SessionManager;
+import com.mycompany.saidera_project.ui.LoginScreen;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -20,10 +21,10 @@ public class SearchHeader extends JPanel {
         // Right side: Notifications, Settings, Profile
         JPanel rightArea = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 12));
         rightArea.setOpaque(false);
-        
+
         // rightArea.add(new JLabel("🔔"));
         // rightArea.add(new JLabel("⚙️"));
-        
+
         User activeUser = SessionManager.getInstance().getCurrentUser();
         String userName = (activeUser != null) ? activeUser.getName() : "Não Identificado";
         String userRole = (activeUser != null) ? activeUser.getRole() : "Convidado";
@@ -33,7 +34,7 @@ public class SearchHeader extends JPanel {
         JLabel nameLabel = new JLabel(userName);
         nameLabel.setFont(UIPalette.FONT_LABEL);
         profile.add(nameLabel);
-        
+
         JLabel roleLabel = new JLabel("(" + userRole + ")");
         roleLabel.setFont(UIPalette.FONT_LABEL.deriveFont(Font.PLAIN, 10f));
         roleLabel.setForeground(Color.GRAY);
@@ -41,14 +42,25 @@ public class SearchHeader extends JPanel {
 
         JLabel avatar = new JLabel("👤");
         profile.add(avatar);
-        
+
         rightArea.add(profile);
+
+        JButton logoutBtn = new JButton("Sair");
+        logoutBtn.setFont(UIPalette.FONT_LABEL.deriveFont(Font.PLAIN, 12f));
+        logoutBtn.setFocusPainted(false);
+        logoutBtn.addActionListener(e -> {
+            SessionManager.getInstance().logout();
+            Window w = SwingUtilities.getWindowAncestor(SearchHeader.this);
+            if (w != null)
+                w.dispose();
+            SwingUtilities.invokeLater(() -> new LoginScreen().setVisible(true));
+        });
+        rightArea.add(logoutBtn);
         add(rightArea, BorderLayout.EAST);
-        
+
         // Bottom border line
         setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xE0E0E0)),
-            new EmptyBorder(0, 40, 0, 40)
-        ));
+                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xE0E0E0)),
+                new EmptyBorder(0, 40, 0, 40)));
     }
 }

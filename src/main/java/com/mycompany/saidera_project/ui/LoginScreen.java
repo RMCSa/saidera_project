@@ -7,6 +7,8 @@ import com.mycompany.saidera_project.security.SessionManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class LoginScreen extends JFrame {
 
@@ -41,7 +43,8 @@ public class LoginScreen extends JFrame {
         gbc.insets = new Insets(40, 40, 10, 40);
         leftPanel.add(sloganLabel, gbc);
 
-        JLabel subLabel = new JLabel("<html>Acesse o back-office para controlar estoques,<br>pedidos e relatórios em tempo real.</html>");
+        JLabel subLabel = new JLabel(
+                "<html>Acesse o back-office para controlar estoques,<br>pedidos e relatórios em tempo real.</html>");
         subLabel.setFont(UIPalette.FONT_BODY);
         subLabel.setForeground(new Color(0xBBBBBB));
         gbc.gridy = 2;
@@ -71,7 +74,7 @@ public class LoginScreen extends JFrame {
         rightPanel.add(hintLabel, gbcR);
 
         // Fields
-        JLabel userLabel = new JLabel("USUÁRIO OU E-MAIL");
+        JLabel userLabel = new JLabel("E-MAIL");
         userLabel.setFont(UIPalette.FONT_LABEL);
         gbcR.gridy = 2;
         gbcR.insets = new Insets(10, 50, 5, 50);
@@ -98,13 +101,24 @@ public class LoginScreen extends JFrame {
         optionsPanel.setOpaque(false);
         JCheckBox rememberMe = new JCheckBox("Lembrar-me");
         rememberMe.setFont(UIPalette.FONT_BODY.deriveFont(12f));
+        rememberMe.setToolTipText("Modo demonstração: opção sem efeito.");
         optionsPanel.add(rememberMe, BorderLayout.WEST);
-        
+
         JLabel forgotPass = new JLabel("<html><u>Esqueceu a senha?</u></html>");
         forgotPass.setFont(UIPalette.FONT_BODY.deriveFont(12f));
         forgotPass.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        forgotPass.setToolTipText("Modo demonstração: recuperação indisponível.");
+        forgotPass.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JOptionPane.showMessageDialog(LoginScreen.this,
+                        "Recuperação de senha indisponível na versão demo.",
+                        "Modo demonstração",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
         optionsPanel.add(forgotPass, BorderLayout.EAST);
-        
+
         gbcR.gridy = 6;
         gbcR.insets = new Insets(10, 50, 10, 50);
         rightPanel.add(optionsPanel, gbcR);
@@ -121,10 +135,10 @@ public class LoginScreen extends JFrame {
         gbcR.insets = new Insets(30, 50, 10, 50);
         rightPanel.add(loginBtn, gbcR);
 
-        // SSL Indicator
+        // Demo indicator
         JPanel sslPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         sslPanel.setOpaque(false);
-        JLabel sslLabel = new JLabel("🔒 Ambiente Seguro SSL - v1.0.4");
+        JLabel sslLabel = new JLabel("Modo demonstração com dados mockados");
         sslLabel.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
         sslLabel.setForeground(Color.LIGHT_GRAY);
         sslPanel.add(sslLabel);
@@ -136,7 +150,15 @@ public class LoginScreen extends JFrame {
             String password = new String(passField.getPassword());
 
             if (email.isEmpty() || password.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Por favor, preencha as credenciais.", "Erro de Login", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Por favor, preencha as credenciais.", "Erro de Login",
+                        JOptionPane.WARNING_MESSAGE);
+                if (email.isEmpty()) {
+                    userField.requestFocusInWindow();
+                    userField.selectAll();
+                } else {
+                    passField.requestFocusInWindow();
+                    passField.selectAll();
+                }
                 return;
             }
 
@@ -149,9 +171,14 @@ public class LoginScreen extends JFrame {
                     new MainFrame().setVisible(true);
                 });
             } else {
-                JOptionPane.showMessageDialog(this, "E-mail ou senha inválidos.", "Acesso Negado", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "E-mail ou senha inválidos.", "Acesso Negado",
+                        JOptionPane.ERROR_MESSAGE);
+                passField.requestFocusInWindow();
+                passField.selectAll();
             }
         });
+
+        getRootPane().setDefaultButton(loginBtn);
 
         mainPanel.add(leftPanel);
         mainPanel.add(rightPanel);
@@ -163,7 +190,7 @@ public class LoginScreen extends JFrame {
         UIManager.put("Button.arc", UIPalette.ROUNDNESS);
         UIManager.put("Component.arc", UIPalette.ROUNDNESS);
         UIManager.put("TextComponent.arc", UIPalette.ROUNDNESS);
-        
+
         SwingUtilities.invokeLater(() -> {
             new LoginScreen().setVisible(true);
         });

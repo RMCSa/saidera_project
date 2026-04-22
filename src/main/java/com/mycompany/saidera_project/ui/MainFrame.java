@@ -5,6 +5,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import com.mycompany.saidera_project.data.DataRepository;
 
 public class MainFrame extends JFrame {
 
@@ -19,12 +20,12 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
-        
+
         // SIDEBAR
         JPanel sidebar = new JPanel(new BorderLayout());
         sidebar.setPreferredSize(new Dimension(240, 800));
         sidebar.setBackground(UIPalette.SLATE);
-        
+
         JPanel navContainer = new JPanel();
         navContainer.setOpaque(false);
         navContainer.setLayout(new BoxLayout(navContainer, BoxLayout.Y_AXIS));
@@ -51,31 +52,34 @@ public class MainFrame extends JFrame {
         JPanel sidebarFooter = new JPanel(new BorderLayout(0, 10));
         sidebarFooter.setOpaque(false);
         sidebarFooter.setBorder(new EmptyBorder(0, 20, 40, 20));
-        
+
         JLabel capLabel = new JLabel("CAPACIDADE TOTAL");
         capLabel.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
         capLabel.setForeground(Color.GRAY);
         sidebarFooter.add(capLabel, BorderLayout.NORTH);
-        
+
         JProgressBar progress = new JProgressBar(0, 100);
-        progress.setValue(78);
+        int totalItems = DataRepository.getInstance().getInventory().size();
+        int lowStockItems = DataRepository.getInstance().getLowStockCount();
+        int stablePercent = totalItems == 0 ? 0 : Math.max(0, ((totalItems - lowStockItems) * 100) / totalItems);
+        progress.setValue(stablePercent);
         progress.setForeground(UIPalette.AMBER);
         progress.setStringPainted(false);
         progress.setPreferredSize(new Dimension(0, 8));
         sidebarFooter.add(progress, BorderLayout.CENTER);
-        
-        JLabel capSub = new JLabel("Barris de Chopp: 78% ocupados");
+
+        JLabel capSub = new JLabel(String.format("Estoque estável: %02d%%", stablePercent));
         capSub.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
         capSub.setForeground(Color.LIGHT_GRAY);
         sidebarFooter.add(capSub, BorderLayout.SOUTH);
-        
+
         sidebar.add(sidebarFooter, BorderLayout.SOUTH);
 
         mainPanel.add(sidebar, BorderLayout.WEST);
 
         // RIGHT CONTAINER (Header + Content)
         JPanel rightContainer = new JPanel(new BorderLayout());
-        
+
         SearchHeader topHeader = new SearchHeader();
         rightContainer.add(topHeader, BorderLayout.NORTH);
 
@@ -85,9 +89,12 @@ public class MainFrame extends JFrame {
         contentArea.add(new InventoryPanel(), "Inventory");
         contentArea.add(new UsersPanel(), "Users");
 
+        // Ensure initial view matches the highlighted sidebar item
+        cardLayout.show(contentArea, "Dashboard");
+
         rightContainer.add(contentArea, BorderLayout.CENTER);
         mainPanel.add(rightContainer, BorderLayout.CENTER);
-        
+
         add(mainPanel);
     }
 
@@ -95,7 +102,7 @@ public class MainFrame extends JFrame {
         JPanel item = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
         item.setOpaque(false);
         item.setMaximumSize(new Dimension(240, 50));
-        
+
         JLabel label = new JLabel(text);
         label.setFont(UIPalette.FONT_BODY.deriveFont(Font.BOLD));
         label.setForeground(Color.LIGHT_GRAY);
@@ -106,7 +113,7 @@ public class MainFrame extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 if (activeSidebarItem != null) {
                     activeSidebarItem.setOpaque(false);
-                    ((JLabel)activeSidebarItem.getComponent(0)).setForeground(Color.LIGHT_GRAY);
+                    ((JLabel) activeSidebarItem.getComponent(0)).setForeground(Color.LIGHT_GRAY);
                 }
                 item.setOpaque(true);
                 item.setBackground(new Color(0, 0, 0, 40));

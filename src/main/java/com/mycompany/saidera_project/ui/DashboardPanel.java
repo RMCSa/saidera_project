@@ -11,17 +11,15 @@ public class DashboardPanel extends JPanel {
 
     private JPanel createChartPanel() {
         org.jfree.data.category.DefaultCategoryDataset dataset = new org.jfree.data.category.DefaultCategoryDataset();
-        dataset.addValue(200, "Litros", "SEG");
-        dataset.addValue(300, "Litros", "TER");
-        dataset.addValue(250, "Litros", "QUA");
-        dataset.addValue(450, "Litros", "QUI");
-        dataset.addValue(550, "Litros", "SEX");
-        dataset.addValue(700, "Litros", "SAB");
-        dataset.addValue(400, "Litros", "DOM");
+        DataRepository repo = DataRepository.getInstance();
+        for (StockItem item : repo.getInventory()) {
+            dataset.addValue(item.getCurrentLevel(), "Atual", item.getName());
+            dataset.addValue(item.getMinimumLevel(), "Mínimo", item.getName());
+        }
 
         org.jfree.chart.JFreeChart barChart = org.jfree.chart.ChartFactory.createBarChart(
-                "Volume de Vendas vs Extração (Litros)",
-                "", "Litros",
+                "Nível Atual vs Nível Mínimo",
+                "", "Quantidade",
                 dataset,
                 org.jfree.chart.plot.PlotOrientation.VERTICAL,
                 false, true, false);
@@ -29,8 +27,9 @@ public class DashboardPanel extends JPanel {
         barChart.setBackgroundPaint(Color.WHITE);
         barChart.getCategoryPlot().setBackgroundPaint(Color.WHITE);
         barChart.getCategoryPlot().setRangeGridlinePaint(new Color(0xE0E0E0));
-        
-        org.jfree.chart.renderer.category.BarRenderer renderer = (org.jfree.chart.renderer.category.BarRenderer) barChart.getCategoryPlot().getRenderer();
+
+        org.jfree.chart.renderer.category.BarRenderer renderer = (org.jfree.chart.renderer.category.BarRenderer) barChart
+                .getCategoryPlot().getRenderer();
         renderer.setSeriesPaint(0, UIPalette.AMBER);
         renderer.setBarPainter(new org.jfree.chart.renderer.category.StandardBarPainter());
         renderer.setShadowVisible(false);
@@ -55,8 +54,10 @@ public class DashboardPanel extends JPanel {
 
         JButton exportBtn = new JButton("Exportar Dados");
         exportBtn.setFont(UIPalette.FONT_LABEL);
+        exportBtn.setEnabled(false);
+        exportBtn.setToolTipText("Disponível apenas na versão completa (demo). ");
         header.add(exportBtn, BorderLayout.EAST);
-        
+
         add(header, BorderLayout.NORTH);
 
         // Main Dashboard Body (Left: KPIs + Chart, Right: Shortcuts)
@@ -75,11 +76,15 @@ public class DashboardPanel extends JPanel {
         DataRepository repo = DataRepository.getInstance();
         JPanel kpiPanel = new JPanel(new GridLayout(1, 4, 20, 0));
         kpiPanel.setOpaque(false);
-        kpiPanel.add(createCard("Itens no Cardápio", String.valueOf(repo.getProducts().size()), "↑ +4 este mês", Color.BLACK));
-        kpiPanel.add(createCard("Alertas Baixo Estoque", String.format("%02d", repo.getLowStockCount()), "Ação imediata necessária", UIPalette.ERROR));
-        kpiPanel.add(createCard("Usuários Ativos", String.format("%02d", repo.getUsers().size()), "Atualmente logados", Color.BLACK));
-        kpiPanel.add(createCard("Choppe Extraído", "2.4k Lts", "Meta batida em 104%", UIPalette.AMBER_DARK));
-        
+        kpiPanel.add(createCard("Itens no Cardápio", String.format("%02d", repo.getProducts().size()),
+            "Produtos cadastrados", Color.BLACK));
+        kpiPanel.add(createCard("Produtos Ativos", String.format("%02d", repo.getActiveProductCount()),
+            "Disponíveis para venda", UIPalette.SUCCESS));
+        kpiPanel.add(createCard("Alertas Baixo Estoque", String.format("%02d", repo.getLowStockCount()),
+            "Itens abaixo do mínimo", UIPalette.ERROR));
+        kpiPanel.add(createCard("Itens em Estoque", String.format("%02d", repo.getInventory().size()),
+            "Insumos cadastrados", UIPalette.AMBER_DARK));
+
         gbc.gridy = 0;
         gbc.weighty = 0.2;
         leftCol.add(kpiPanel, gbc);
@@ -91,22 +96,24 @@ public class DashboardPanel extends JPanel {
 
         body.add(leftCol, BorderLayout.CENTER);
 
-        // RIGHT COLUMN: Shortcuts
+        // RIGHT COLUMN: Repository-driven summary
         JPanel rightCol = new JPanel();
         rightCol.setOpaque(false);
         rightCol.setPreferredSize(new Dimension(300, 0));
         rightCol.setLayout(new BoxLayout(rightCol, BoxLayout.Y_AXIS));
-        
-        JLabel shortcutTitle = new JLabel("Atalhos Rápidos");
+
+        JLabel shortcutTitle = new JLabel("Resumo do Mock");
         shortcutTitle.setFont(UIPalette.FONT_TITLE);
         shortcutTitle.setBorder(new EmptyBorder(0, 0, 20, 0));
         rightCol.add(shortcutTitle);
 
-        rightCol.add(createShortcut("Reposição Urgente", "Notificar fornecedores agora", "🔔"));
+        rightCol.add(createShortcut("Produtos ativos", String.format("%02d itens", repo.getActiveProductCount()), "🍻"));
         rightCol.add(Box.createVerticalStrut(15));
-        rightCol.add(createShortcut("Alterar Preços", "Gestão global de precificação", "🏷️"));
+        rightCol.add(createShortcut("Produtos inativos", String.format("%02d itens", repo.getInactiveProductCount()), "⏸"));
         rightCol.add(Box.createVerticalStrut(15));
-        rightCol.add(createShortcut("Relatório de Fechamento", "Auditoria diária de vendas", "📄"));
+        rightCol.add(createShortcut("Produtos vinculados", String.format("%02d itens", repo.getLinkedProductCount()), "🔗"));
+        rightCol.add(Box.createVerticalStrut(15));
+        rightCol.add(createShortcut("Categorias cadastradas", String.format("%02d categorias", repo.getProductCategories().size()), "🏷️"));
 
         body.add(rightCol, BorderLayout.EAST);
 
@@ -114,28 +121,45 @@ public class DashboardPanel extends JPanel {
         JPanel southPanel = new JPanel(new BorderLayout());
         southPanel.setOpaque(false);
         southPanel.setBorder(new EmptyBorder(30, 0, 0, 0));
-        
+
         JLabel alertTitle = new JLabel("Produtos em Alerta Crítico");
         alertTitle.setFont(UIPalette.FONT_TITLE);
         alertTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
         southPanel.add(alertTitle, BorderLayout.NORTH);
-        
-        String[] colNames = {"PRODUTO", "NÍVEL ATUAL", "NÍVEL MÍNIMO", "STATUS"};
+
+        String[] colNames = { "PRODUTO", "NÍVEL ATUAL", "NÍVEL MÍNIMO", "STATUS" };
         DefaultTableModel alertModel = new DefaultTableModel(colNames, 0);
         for (StockItem item : repo.getInventory()) {
             if (item.isLowStock()) {
-                alertModel.addRow(new Object[]{item.getName(), item.getCurrentLevel() + " " + item.getUnit(), item.getMinimumLevel() + " " + item.getUnit(), "ABAIXO DO MÍNIMO"});
+                alertModel.addRow(new Object[] { item.getName(), item.getCurrentLevel() + " " + item.getUnit(),
+                        item.getMinimumLevel() + " " + item.getUnit(), "ABAIXO DO MÍNIMO" });
             }
         }
-        
+
         JTable alertTable = new JTable(alertModel);
         alertTable.setRowHeight(40);
         alertTable.setFont(UIPalette.FONT_BODY);
         JScrollPane alertScroll = new JScrollPane(alertTable);
         alertScroll.setPreferredSize(new Dimension(0, 150));
         alertScroll.getViewport().setBackground(Color.WHITE);
-        southPanel.add(alertScroll, BorderLayout.CENTER);
-        
+
+        JPanel emptyState = new JPanel(new BorderLayout());
+        emptyState.setBackground(Color.WHITE);
+        emptyState.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(0xE0E0E0)),
+                new EmptyBorder(30, 20, 30, 20)));
+        JLabel emptyLabel = new JLabel("Nenhum alerta crítico hoje.");
+        emptyLabel.setFont(UIPalette.FONT_BODY);
+        emptyLabel.setForeground(Color.GRAY);
+        emptyLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        emptyState.add(emptyLabel, BorderLayout.CENTER);
+
+        if (alertModel.getRowCount() == 0) {
+            southPanel.add(emptyState, BorderLayout.CENTER);
+        } else {
+            southPanel.add(alertScroll, BorderLayout.CENTER);
+        }
+
         body.add(southPanel, BorderLayout.SOUTH);
 
         add(body, BorderLayout.CENTER);
@@ -160,7 +184,7 @@ public class DashboardPanel extends JPanel {
         s.setFont(UIPalette.FONT_LABEL.deriveFont(Font.PLAIN, 10f));
         s.setForeground(Color.GRAY);
         text.add(s);
-        
+
         card.add(text, BorderLayout.CENTER);
         return card;
     }
@@ -169,9 +193,8 @@ public class DashboardPanel extends JPanel {
         JPanel card = new JPanel(new GridBagLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(0xE0E0E0)),
-            new EmptyBorder(20, 20, 20, 20)
-        ));
+                BorderFactory.createLineBorder(new Color(0xE0E0E0)),
+                new EmptyBorder(20, 20, 20, 20)));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.WEST;

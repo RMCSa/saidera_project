@@ -6,13 +6,15 @@ public class Product {
     private String category;
     private double price;
     private boolean active;
+    private String linkedStockItemId;
 
-    public Product(String id, String name, String category, double price, boolean active) {
+    public Product(String id, String name, String category, double price, boolean active, String linkedStockItemId) {
         this.id = id;
         this.name = name;
         this.category = category;
         this.price = price;
         this.active = active;
+        this.linkedStockItemId = linkedStockItemId;
     }
 
     // Getters and Setters
@@ -22,4 +24,6 @@ public class Product {
     public double getPrice() { return price; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+    public String getLinkedStockItemId() { return linkedStockItemId; }
+    public void setLinkedStockItemId(String id) { this.linkedStockItemId = id; }
 }

@@ -35,16 +35,18 @@ public class UserForm extends BaseDialog {
 
         passField = new JPasswordField("muda123"); // Default password
         passField.setPreferredSize(new Dimension(0, 40));
+        passField.setText("");
+        passField.setToolTipText("Se vazio, será usada a senha temporária padrão: muda123 (demo).");
         addField("SENHA TEMPORÁRIA", passField, gbc, 2);
 
-        roleCombo = new JComboBox<>(new String[]{"Admin", "Gerente", "Caixa", "Garçom"});
+        roleCombo = new JComboBox<>(new String[] { "Admin", "Gerente", "Caixa", "Garçom" });
         roleCombo.setPreferredSize(new Dimension(0, 40));
         addField("CARGO / PERFIL", roleCombo, gbc, 3);
 
         // Buttons
         JButton cancelBtn = createSecondaryButton("Cancelar");
         cancelBtn.addActionListener(e -> dispose());
-        
+
         JButton saveBtn = createPrimaryButton("Salvar Usuário");
         saveBtn.addActionListener(this::saveUser);
 
@@ -58,18 +60,29 @@ public class UserForm extends BaseDialog {
         String password = new String(passField.getPassword());
         String role = (String) roleCombo.getSelectedItem();
 
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor, preencha todos os campos.");
+        if (name.isEmpty() || email.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor, preencha nome e e-mail.");
             return;
         }
 
-        String id = name.substring(0, 1).toUpperCase() + name.split(" ")[name.split(" ").length - 1].substring(0, 1).toUpperCase();
+        if (!email.contains("@") || email.startsWith("@") || email.endsWith("@")) {
+            JOptionPane.showMessageDialog(this, "Informe um e-mail válido.");
+            return;
+        }
+
+        if (password.isEmpty()) {
+            password = "muda123";
+        }
+
+        String id = name.substring(0, 1).toUpperCase()
+                + name.split(" ")[name.split(" ").length - 1].substring(0, 1).toUpperCase();
         String dateStr = new SimpleDateFormat("dd MMM, yyyy").format(new Date());
-        
+
         User u = new User(id, name, email, role, dateStr, password);
         DataRepository.getInstance().addUser(u);
 
-        if (onSaveCallback != null) onSaveCallback.run();
+        if (onSaveCallback != null)
+            onSaveCallback.run();
         dispose();
     }
 }
