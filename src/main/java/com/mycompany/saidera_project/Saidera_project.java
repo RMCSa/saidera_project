@@ -10,8 +10,17 @@ import com.mycompany.saidera_project.ui.UIPalette;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+/**
+ * Classe principal responsável por inicializar a aplicação.
+ * Configura o LookAndFeel global do sistema e levanta a janela de login inicial.
+ */
 public class Saidera_project {
 
+    /**
+     * Ponto de entrada (entry point) principal do sistema.
+     * 
+     * @param args Argumentos de linha de comando.
+     */
     public static void main(String[] args) {
         // Setup Look and Feel
         FlatLightLaf.setup();
