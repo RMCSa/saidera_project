@@ -1,0 +1,56 @@
+-J-Duser.language=
+-J-Duser.country=
+@options
+@packages
+--no-fonts
+-classpath
+'C:/Users/rafam/.m2/repository/com/formdev/flatlaf/3.4.1/flatlaf-3.4.1.jar;C:/Users/rafam/.m2/repository/com/formdev/flatlaf-extras/3.4.1/flatlaf-extras-3.4.1.jar;C:/Users/rafam/.m2/repository/org/jfree/jfreechart/1.5.4/jfreechart-1.5.4.jar'
+-encoding
+'UTF-8'
+-protected
+-source
+'1.8'
+-sourcepath
+'C:/Users/rafam/OneDrive/Documentos/NetBeansProjects/saidera_project/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2026. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'C:/Users/rafam/OneDrive/Documentos/NetBeansProjects/saidera_project/target/reports/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'saidera_project 1.0-SNAPSHOT API'
+-linkoffline
+'https://docs.oracle.com/javase/8/docs/api' 'C:/Users/rafam/OneDrive/Documentos/NetBeansProjects/saidera_project/target/javadoc-bundle-options'
+-use
+-version
+-windowtitle
+'saidera_project 1.0-SNAPSHOT API'
+com.mycompany.saidera_project.data
+com.mycompany.saidera_project.models
+com.mycompany.saidera_project
+com.mycompany.saidera_project.security
+com.mycompany.saidera_project.ui
+C:\Users\rafam\.m2\repository\com\formdev\flatlaf\3.4.1\flatlaf-3.4.1.jar = 1776614145256
+C:\Users\rafam\.m2\repository\com\formdev\flatlaf-extras\3.4.1\flatlaf-extras-3.4.1.jar = 1776614145087
+C:\Users\rafam\.m2\repository\org\jfree\jfreechart\1.5.4\jfreechart-1.5.4.jar = 1776641917135
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\src\main\java = 1776210313569
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\allclasses-index.html = 1776820075602
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\allpackages-index.html = 1776820075604
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\constant-values.html = 1776820075486
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\element-list = 1776820075445
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\help-doc.html = 1776820075641
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\index-all.html = 1776820075628
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\index.html = 1776820075587
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\member-search-index.js = 1776820075611
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\module-search-index.js = 1776820075606
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\overview-summary.html = 1776820075633
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\overview-tree.html = 1776820075581
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\package-search-index.js = 1776820075607
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\search.html = 1776820075630
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\serialized-form.html = 1776820075512
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\tag-search-index.js = 1776820075612
+C:\Users\rafam\OneDrive\Documentos\NetBeansProjects\saidera_project\target\reports\apidocs\type-search-index.js = 1776820075610
