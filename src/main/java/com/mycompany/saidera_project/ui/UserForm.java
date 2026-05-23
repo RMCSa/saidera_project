@@ -74,8 +74,7 @@ public class UserForm extends BaseDialog {
             password = "muda123";
         }
 
-        String id = name.substring(0, 1).toUpperCase()
-                + name.split(" ")[name.split(" ").length - 1].substring(0, 1).toUpperCase();
+        String id = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
         String dateStr = new SimpleDateFormat("dd MMM, yyyy").format(new Date());
 
         User u = new User(id, name, email, role, dateStr, password);

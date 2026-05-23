@@ -163,7 +163,7 @@ public class StockTransactionForm extends BaseDialog {
                 return;
             }
 
-            itemId = "S" + String.format("%02d", DataRepository.getInstance().getInventory().size() + 1);
+            itemId = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
             StockItem newItem = new StockItem(itemId, name, 0, minLevel, unit);
             DataRepository.getInstance().addStockItem(newItem);
         } else {

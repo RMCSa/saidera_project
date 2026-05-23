@@ -103,7 +103,7 @@ public class ProductForm extends BaseDialog {
             return;
         }
 
-        String id = String.format("%02d", DataRepository.getInstance().getProducts().size() + 1);
+        String id = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
 
         String linkedStockId = null;
         Object selected = stockLinkCombo.getSelectedItem();
