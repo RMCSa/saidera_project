@@ -6,6 +6,8 @@ import com.mycompany.saidera_project.security.SessionManager;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,7 +24,7 @@ public class UsersPanel extends JPanel {
     public UsersPanel() {
         setLayout(new BorderLayout());
         setBackground(UIPalette.BACKGROUND);
-        setBorder(new EmptyBorder(40, 40, 40, 40));
+        setBorder(new EmptyBorder(30, 40, 30, 40));
 
         // Header
         JPanel header = new JPanel(new BorderLayout());
@@ -63,21 +65,21 @@ public class UsersPanel extends JPanel {
         add(header, BorderLayout.NORTH);
 
         // Metrics and Table
-        JPanel centerPanel = new JPanel(new BorderLayout(0, 30));
+        JPanel centerPanel = new JPanel(new BorderLayout(0, 20));
         centerPanel.setOpaque(false);
-        centerPanel.setBorder(new EmptyBorder(30, 0, 0, 0));
+        centerPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
 
-        // Metrics Row (derived from mock repository)
+        // Metrics Row
         JPanel kpiPanel = new JPanel(new GridLayout(1, 3, 20, 0));
         kpiPanel.setOpaque(false);
-        kpiPanel.add(createMetricCard("USUÁRIOS CADASTRADOS", "00", "no sistema"));
-        kpiPanel.add(createMetricCard("SESSÃO ATIVA", "00", "neste terminal"));
-        kpiPanel.add(createMetricCard("PERFIS ADMIN", "00", "com permissão"));
+        kpiPanel.add(createMetricCard("USUÁRIOS CADASTRADOS", "00", "no sistema", "👥", new Color(0xEFF6FF)));
+        kpiPanel.add(createMetricCard("SESSÃO ATIVA", "00", "neste terminal", "🔑", new Color(0xECFDF5)));
+        kpiPanel.add(createMetricCard("PERFIS ADMIN", "00", "com permissão", "👑", new Color(0xFFFBEB)));
         centerPanel.add(kpiPanel, BorderLayout.NORTH);
 
         updateMetrics();
 
-        // Table
+        // Table Model Setup
         String[] columns = { "ID", "FUNCIONÁRIO", "EMAIL", "CARGO/PERFIL", "DATA DE CADASTRO", "AÇÕES" };
         model = new DefaultTableModel(columns, 0) {
             @Override
@@ -88,7 +90,7 @@ public class UsersPanel extends JPanel {
         refreshTable();
 
         table = new JTable(model);
-        table.setRowHeight(60);
+        table.setRowHeight(50);
 
         // Setup Action Column
         TableActionCell actionCell = new TableActionCell(
@@ -117,8 +119,136 @@ public class UsersPanel extends JPanel {
         table.setFont(UIPalette.FONT_BODY);
         table.getTableHeader().setFont(UIPalette.FONT_LABEL);
 
+        // Custom Renderer for column 1 (Initials + Name Avatar)
+        table.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
+            private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
+            private final JLabel nameLabel = new JLabel();
+            private final JPanel avatarCircle = new JPanel(new GridBagLayout()) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    int hash = nameText.hashCode();
+                    Color[] presets = {
+                        new Color(0x3B82F6), new Color(0x10B981), new Color(0xF59E0B), 
+                        new Color(0xEF4444), new Color(0x8B5CF6), new Color(0xEC4899),
+                        new Color(0x14B8A6), new Color(0x6366F1)
+                    };
+                    Color color = presets[Math.abs(hash) % presets.length];
+                    g2.setColor(color);
+                    g2.fillOval(0, 0, getWidth(), getHeight());
+                    g2.dispose();
+                }
+            };
+            private final JLabel initialsLabel = new JLabel();
+            private String nameText = "";
+            {
+                panel.setOpaque(false);
+                avatarCircle.setPreferredSize(new Dimension(32, 32));
+                avatarCircle.setOpaque(false);
+                initialsLabel.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
+                initialsLabel.setForeground(Color.WHITE);
+                avatarCircle.add(initialsLabel);
+                panel.add(avatarCircle);
+                
+                nameLabel.setFont(UIPalette.FONT_BODY);
+                panel.add(nameLabel);
+            }
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int column) {
+                if (value != null) {
+                    nameText = value.toString();
+                    nameLabel.setText(nameText);
+                    
+                    String initials = "";
+                    String[] parts = nameText.trim().split("\\s+");
+                    if (parts.length > 0 && !parts[0].isEmpty()) {
+                        initials += parts[0].substring(0, 1).toUpperCase();
+                        if (parts.length > 1 && !parts[1].isEmpty()) {
+                            initials += parts[1].substring(0, 1).toUpperCase();
+                        }
+                    }
+                    initialsLabel.setText(initials);
+                    
+                    if (isSelected) {
+                        panel.setBackground(table.getSelectionBackground());
+                        nameLabel.setForeground(table.getSelectionForeground());
+                    } else {
+                        panel.setBackground(table.getBackground());
+                        nameLabel.setForeground(UIPalette.ON_BACKGROUND);
+                    }
+                    return panel;
+                }
+                return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            }
+        });
+
+        // Custom Renderer for column 3 (Semantic Role Badge)
+        table.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
+            private final JPanel badge = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(bg);
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                    g2.setColor(border);
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                    g2.dispose();
+                }
+            };
+            private final JLabel roleLabel = new JLabel();
+            private Color bg = Color.WHITE;
+            private Color border = Color.LIGHT_GRAY;
+            {
+                badge.setOpaque(false);
+                badge.setLayout(new GridBagLayout());
+                badge.setPreferredSize(new Dimension(80, 22));
+                roleLabel.setFont(UIPalette.FONT_LABEL.deriveFont(9f));
+                badge.add(roleLabel);
+            }
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int column) {
+                JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 14));
+                wrapper.setOpaque(true);
+                if (value != null) {
+                    String role = value.toString();
+                    roleLabel.setText(role.toUpperCase());
+                    
+                    if (role.equalsIgnoreCase("Admin")) {
+                        bg = new Color(0xFEF3C7);
+                        border = new Color(0xF59E0B);
+                        roleLabel.setForeground(new Color(0x78350F));
+                    } else if (role.equalsIgnoreCase("Gerente")) {
+                        bg = new Color(0xDBEAFE);
+                        border = new Color(0x3B82F6);
+                        roleLabel.setForeground(new Color(0x1E3A8A));
+                    } else if (role.equalsIgnoreCase("Caixa")) {
+                        bg = new Color(0xF3E8FF);
+                        border = new Color(0x8B5CF6);
+                        roleLabel.setForeground(new Color(0x581C87));
+                    } else { // Garçom or WAITER
+                        bg = new Color(0xF3F4F6);
+                        border = new Color(0x9CA3AF);
+                        roleLabel.setForeground(new Color(0x374151));
+                    }
+                    wrapper.add(badge);
+                }
+                
+                if (isSelected) {
+                    wrapper.setBackground(table.getSelectionBackground());
+                } else {
+                    wrapper.setBackground(table.getBackground());
+                }
+                return wrapper;
+            }
+        });
+
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createLineBorder(UIPalette.BORDER));
         centerPanel.add(scrollPane, BorderLayout.CENTER);
 
         add(centerPanel, BorderLayout.CENTER);
@@ -157,13 +287,13 @@ public class UsersPanel extends JPanel {
 
         // Current session card
         JPanel sessionCard = new JPanel(new BorderLayout());
-        sessionCard.setBackground(new Color(0xE3F2FD));
+        sessionCard.setBackground(Color.WHITE);
         sessionCard.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(0xBBDEFB)),
+            BorderFactory.createLineBorder(UIPalette.BORDER),
             new EmptyBorder(20, 20, 20, 20)));
         JLabel sessionTitle = new JLabel("SESSÃO ATUAL");
         sessionTitle.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
-        sessionTitle.setForeground(new Color(0x1976D2));
+        sessionTitle.setForeground(UIPalette.INFO);
         sessionCard.add(sessionTitle, BorderLayout.NORTH);
 
         User activeUser = SessionManager.getInstance().getCurrentUser();
@@ -191,29 +321,45 @@ public class UsersPanel extends JPanel {
         updateMetrics();
     }
 
-    private JPanel createMetricCard(String title, String value, String sub) {
-        JPanel card = new JPanel(new GridBagLayout());
-        card.setBackground(title.contains("NOVAS") ? new Color(0xFFF0BD) : Color.WHITE);
+    private JPanel createMetricCard(String title, String value, String sub, String iconText, Color iconBg) {
+        JPanel card = new JPanel(new BorderLayout(15, 0));
+        card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(0xE0E0E0)),
-                new EmptyBorder(20, 20, 20, 20)));
+                BorderFactory.createLineBorder(UIPalette.BORDER),
+                new EmptyBorder(15, 20, 15, 20)));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
+        // Circle icon
+        JPanel iconCircle = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(iconBg);
+                g2.fillOval(0, 0, getWidth(), getHeight());
+                g2.dispose();
+            }
+        };
+        iconCircle.setPreferredSize(new Dimension(42, 42));
+        iconCircle.setOpaque(false);
+        JLabel iconLbl = new JLabel(iconText);
+        iconLbl.setFont(UIPalette.FONT_TITLE.deriveFont(18f));
+        iconCircle.add(iconLbl);
+        card.add(iconCircle, BorderLayout.WEST);
 
-        JLabel t = new JLabel(title);
-        t.setFont(UIPalette.FONT_LABEL);
-        t.setForeground(new Color(0x666666));
-        gbc.gridy = 0;
-        card.add(t, gbc);
+        // Texts Container
+        JPanel textContainer = new JPanel();
+        textContainer.setOpaque(false);
+        textContainer.setLayout(new BoxLayout(textContainer, BoxLayout.Y_AXIS));
 
-        JPanel valPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        valPanel.setOpaque(false);
+        JLabel t = new JLabel(title.toUpperCase());
+        t.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
+        t.setForeground(Color.GRAY);
+        textContainer.add(t);
+
         JLabel v = new JLabel(value);
-        v.setFont(UIPalette.FONT_TITLE.deriveFont(28f));
-        valPanel.add(v);
+        v.setFont(UIPalette.FONT_TITLE.deriveFont(26f));
+        v.setForeground(UIPalette.ON_BACKGROUND);
+        textContainer.add(v);
 
         if ("USUÁRIOS CADASTRADOS".equals(title)) {
             totalUsersValueLabel = v;
@@ -222,15 +368,13 @@ public class UsersPanel extends JPanel {
         } else if ("PERFIS ADMIN".equals(title)) {
             adminsValueLabel = v;
         }
+
         JLabel s = new JLabel(sub);
-        s.setFont(UIPalette.FONT_LABEL.deriveFont(Font.PLAIN));
+        s.setFont(UIPalette.FONT_LABEL.deriveFont(Font.PLAIN, 10f));
         s.setForeground(Color.GRAY);
-        valPanel.add(s);
+        textContainer.add(s);
 
-        gbc.gridy = 1;
-        gbc.insets = new Insets(10, 0, 0, 0);
-        card.add(valPanel, gbc);
-
+        card.add(textContainer, BorderLayout.CENTER);
         return card;
     }
 

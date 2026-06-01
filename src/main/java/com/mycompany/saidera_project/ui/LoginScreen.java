@@ -22,9 +22,20 @@ public class LoginScreen extends JFrame {
         // Main content pane with Split Layout
         JPanel mainPanel = new JPanel(new GridLayout(1, 2));
 
-        // LEFT PANEL: Brand Info
-        JPanel leftPanel = new JPanel(new GridBagLayout());
-        leftPanel.setBackground(UIPalette.SLATE);
+        // LEFT PANEL: Brand Info with beautiful custom gradient
+        JPanel leftPanel = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // Radial/linear-like gradient from Slate to slate-light
+                GradientPaint gp = new GradientPaint(0, 0, UIPalette.SLATE, 0, getHeight(), new Color(0x0F1923));
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
+            }
+        };
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(20, 40, 20, 40);
         gbc.anchor = GridBagConstraints.WEST;
@@ -82,6 +93,8 @@ public class LoginScreen extends JFrame {
 
         JTextField userField = new JTextField();
         userField.setPreferredSize(new Dimension(300, 45));
+        userField.putClientProperty("JTextField.placeholderText", "exemplo@choperia.com.br");
+        userField.putClientProperty("JTextField.showClearButton", true);
         gbcR.gridy = 3;
         rightPanel.add(userField, gbcR);
 
@@ -93,6 +106,8 @@ public class LoginScreen extends JFrame {
 
         JPasswordField passField = new JPasswordField();
         passField.setPreferredSize(new Dimension(300, 45));
+        passField.putClientProperty("JTextField.placeholderText", "Sua senha");
+        passField.putClientProperty("JTextField.showRevealButton", true);
         gbcR.gridy = 5;
         rightPanel.add(passField, gbcR);
 
@@ -123,6 +138,15 @@ public class LoginScreen extends JFrame {
         gbcR.insets = new Insets(10, 50, 10, 50);
         rightPanel.add(optionsPanel, gbcR);
 
+        // Inline Error Label
+        JLabel errorLabel = new JLabel(" ");
+        errorLabel.setFont(UIPalette.FONT_LABEL.deriveFont(13f));
+        errorLabel.setForeground(UIPalette.ERROR);
+        errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        gbcR.gridy = 7;
+        gbcR.insets = new Insets(5, 50, 5, 50);
+        rightPanel.add(errorLabel, gbcR);
+
         // Login Button
         JButton loginBtn = new JButton("Entrar no Sistema");
         loginBtn.setBackground(UIPalette.AMBER);
@@ -131,8 +155,8 @@ public class LoginScreen extends JFrame {
         loginBtn.setPreferredSize(new Dimension(300, 50));
         loginBtn.setFocusPainted(false);
         loginBtn.setBorder(BorderFactory.createEmptyBorder());
-        gbcR.gridy = 7;
-        gbcR.insets = new Insets(30, 50, 10, 50);
+        gbcR.gridy = 8;
+        gbcR.insets = new Insets(15, 50, 10, 50);
         rightPanel.add(loginBtn, gbcR);
 
         // Demo indicator
@@ -142,40 +166,86 @@ public class LoginScreen extends JFrame {
         sslLabel.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
         sslLabel.setForeground(Color.LIGHT_GRAY);
         sslPanel.add(sslLabel);
-        gbcR.gridy = 8;
+        gbcR.gridy = 9;
         rightPanel.add(sslPanel, gbcR);
 
         loginBtn.addActionListener((ActionEvent e) -> {
             String email = userField.getText();
             String password = new String(passField.getPassword());
 
+            // Clear previous outlines and error
+            errorLabel.setText(" ");
+            userField.putClientProperty("JComponent.outline", null);
+            passField.putClientProperty("JComponent.outline", null);
+            rightPanel.revalidate();
+            rightPanel.repaint();
+
             if (email.isEmpty() || password.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Por favor, preencha as credenciais.", "Erro de Login",
-                        JOptionPane.WARNING_MESSAGE);
+                errorLabel.setText("Por favor, preencha as credenciais.");
                 if (email.isEmpty()) {
+                    userField.putClientProperty("JComponent.outline", "error");
                     userField.requestFocusInWindow();
-                    userField.selectAll();
                 } else {
+                    passField.putClientProperty("JComponent.outline", "error");
                     passField.requestFocusInWindow();
-                    passField.selectAll();
                 }
+                rightPanel.revalidate();
+                rightPanel.repaint();
                 return;
             }
 
-            User authenticatedUser = DataRepository.getInstance().authenticate(email, password);
+            // Disable controls to show loading state
+            loginBtn.setEnabled(false);
+            loginBtn.setText("Autenticando...");
+            userField.setEnabled(false);
+            passField.setEnabled(false);
 
-            if (authenticatedUser != null) {
-                SessionManager.getInstance().login(authenticatedUser);
-                dispose();
-                SwingUtilities.invokeLater(() -> {
-                    new MainFrame().setVisible(true);
-                });
-            } else {
-                JOptionPane.showMessageDialog(this, "E-mail ou senha inválidos.", "Acesso Negado",
-                        JOptionPane.ERROR_MESSAGE);
-                passField.requestFocusInWindow();
-                passField.selectAll();
-            }
+            // Simulating authenticating in SwingWorker for smooth feedback
+            SwingWorker<User, Void> worker = new SwingWorker<User, Void>() {
+                @Override
+                protected User doInBackground() throws Exception {
+                    Thread.sleep(850); // smooth indicator delay
+                    return DataRepository.getInstance().authenticate(email, password);
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        User authenticatedUser = get();
+                        if (authenticatedUser != null) {
+                            SessionManager.getInstance().login(authenticatedUser);
+                            dispose();
+                            SwingUtilities.invokeLater(() -> {
+                                new MainFrame().setVisible(true);
+                            });
+                        } else {
+                            // Re-enable input
+                            loginBtn.setEnabled(true);
+                            loginBtn.setText("Entrar no Sistema");
+                            userField.setEnabled(true);
+                            passField.setEnabled(true);
+
+                            errorLabel.setText("E-mail ou senha inválidos.");
+                            userField.putClientProperty("JComponent.outline", "error");
+                            passField.putClientProperty("JComponent.outline", "error");
+                            rightPanel.revalidate();
+                            rightPanel.repaint();
+                            passField.requestFocusInWindow();
+                            passField.selectAll();
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        loginBtn.setEnabled(true);
+                        loginBtn.setText("Entrar no Sistema");
+                        userField.setEnabled(true);
+                        passField.setEnabled(true);
+                        errorLabel.setText("Erro de conexão ao banco de dados.");
+                        rightPanel.revalidate();
+                        rightPanel.repaint();
+                    }
+                }
+            };
+            worker.execute();
         });
 
         getRootPane().setDefaultButton(loginBtn);

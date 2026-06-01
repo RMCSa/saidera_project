@@ -30,6 +30,16 @@ public class DataRepository {
     }
 
     private void initializeDatabaseIfEmpty() {
+        // Auto-fix table column length for username if needed
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("ALTER TABLE \"User\" ALTER COLUMN username TYPE VARCHAR(100)")) {
+            stmt.executeUpdate();
+            System.out.println("Tabela 'User' alterada com sucesso para suportar e-mails de ate 100 caracteres.");
+        } catch (SQLException e) {
+            // Quietly print warning if we can't alter column type (e.g. if db is not ready, or table is missing)
+            System.err.println("Aviso ao ajustar tamanho da coluna username: " + e.getMessage());
+        }
+
         String countSql = "SELECT COUNT(*) FROM \"User\"";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(countSql);

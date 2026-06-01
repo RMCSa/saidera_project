@@ -10,11 +10,15 @@ public class UIPalette {
     // Primary Colors
     public static final Color AMBER = new Color(0xFFBF00);
     public static final Color AMBER_DARK = new Color(0x795900);
+    public static final Color AMBER_LIGHT = new Color(0xFFF8DC);
     
     // Background Colors
-    public static final Color BACKGROUND = new Color(0xF7F9FF);
+    public static final Color BACKGROUND = new Color(0xF0F4FF);
     public static final Color SURFACE = Color.WHITE;
+    public static final Color SURFACE_2 = new Color(0xF8FAFC);
     public static final Color SLATE = new Color(0x203243); // Sidebar / Navigation
+    public static final Color SLATE_LIGHT = new Color(0x2C4259); // Sidebar Hover
+    public static final Color BORDER = new Color(0xE2E8F0);
     
     // Text Colors
     public static final Color ON_BACKGROUND = new Color(0x091D2E);
@@ -22,8 +26,10 @@ public class UIPalette {
     public static final Color TEXT_SECONDARY = new Color(0x504532);
     
     // Status Colors
-    public static final Color ERROR = new Color(0xBA1A1A);
-    public static final Color SUCCESS = new Color(0x2E7D32);
+    public static final Color ERROR = new Color(0xDC2626);
+    public static final Color SUCCESS = new Color(0x16A34A);
+    public static final Color WARNING = new Color(0xD97706);
+    public static final Color INFO = new Color(0x2563EB);
     
     // UI Helpers
     public static final int ROUNDNESS = 12;

@@ -3,6 +3,7 @@ package com.mycompany.saidera_project.ui;
 import com.mycompany.saidera_project.models.User;
 import com.mycompany.saidera_project.security.SessionManager;
 import com.mycompany.saidera_project.ui.LoginScreen;
+import com.mycompany.saidera_project.data.DataRepository;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -58,9 +59,49 @@ public class SearchHeader extends JPanel {
         rightArea.add(logoutBtn);
         add(rightArea, BorderLayout.EAST);
 
-        // Bottom border line
+        // Left side: Clickable Alert Pill if there are low stock alerts
+        int lowStockCount = DataRepository.getInstance().getLowStockCount();
+        if (lowStockCount > 0) {
+            JPanel alertPill = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(0xFEE2E2)); // red-50
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+                    g2.setColor(UIPalette.ERROR);
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+                    g2.dispose();
+                }
+            };
+            alertPill.setOpaque(false);
+            alertPill.setLayout(new FlowLayout(FlowLayout.CENTER, 12, 5));
+            alertPill.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            
+            JLabel alertText = new JLabel("🚨 " + lowStockCount + " Alertas de Estoque Baixo");
+            alertText.setFont(UIPalette.FONT_LABEL);
+            alertText.setForeground(UIPalette.ERROR);
+            alertPill.add(alertText);
+            
+            alertPill.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    Window w = SwingUtilities.getWindowAncestor(SearchHeader.this);
+                    if (w instanceof MainFrame) {
+                        ((MainFrame) w).showPanel("Inventory");
+                    }
+                }
+            });
+            
+            JPanel leftArea = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 13));
+            leftArea.setOpaque(false);
+            leftArea.add(alertPill);
+            add(leftArea, BorderLayout.WEST);
+        }
+
+        // Bottom border line using design system BORDER token
         setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xE0E0E0)),
+                BorderFactory.createMatteBorder(0, 0, 1, 0, UIPalette.BORDER),
                 new EmptyBorder(0, 40, 0, 40)));
     }
 }

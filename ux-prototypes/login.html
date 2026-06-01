@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saíderas Desktop — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --amber: #FFBF00;
+    --amber-dark: #795900;
+    --amber-glow: rgba(255, 191, 0, 0.2);
+    --slate: #203243;
+    --slate-light: #2C4259;
+    --surface: #FFFFFF;
+    --bg: #F0F4FF;
+    --border: #E2E8F0;
+    --text: #0F172A;
+    --text-muted: #64748B;
+    --error: #DC2626;
+    --error-bg: #FEF2F2;
+    --success: #16A34A;
+    --success-bg: #F0FDF4;
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  /* LEFT PANEL */
+  .left-panel {
+    flex: 1;
+    background: var(--slate);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .left-panel::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -20%;
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(ellipse at 30% 50%, rgba(255,191,0,0.12) 0%, transparent 60%);
+    animation: pulse 8s ease-in-out infinite;
+  }
+
+  .left-panel::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    right: -10%;
+    width: 80%;
+    height: 80%;
+    background: radial-gradient(ellipse at 70% 70%, rgba(44,66,89,0.8) 0%, transparent 60%);
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1) translateY(0); opacity: 1; }
+    50% { transform: scale(1.05) translateY(-10px); opacity: 0.8; }
+  }
+
+  .left-content { position: relative; z-index: 1; }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+
+  .brand-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--amber);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .brand-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--amber);
+    letter-spacing: -0.5px;
+  }
+
+  .hero-title {
+    font-size: 42px;
+    font-weight: 800;
+    color: #FFFFFF;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+  }
+
+  .hero-title span {
+    color: var(--amber);
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.7;
+    max-width: 380px;
+    margin-bottom: 56px;
+  }
+
+  .features {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .feature-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255,191,0,0.15);
+    border: 1px solid rgba(255,191,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .feature-text {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 500;
+  }
+
+  .testimonial {
+    margin-top: 56px;
+    padding: 20px 24px;
+    border-radius: var(--radius);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .testimonial p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  .testimonial-author {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--amber);
+    font-weight: 600;
+  }
+
+  /* RIGHT PANEL */
+  .right-panel {
+    width: 480px;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 56px;
+    box-shadow: -20px 0 60px rgba(0,0,0,0.15);
+  }
+
+  .form-header { margin-bottom: 40px; }
+
+  .form-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--amber-dark);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .form-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+
+  .form-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  /* Form Fields */
+  .field-group {
+    margin-bottom: 20px;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .field-wrapper {
+    position: relative;
+  }
+
+  .field-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  .field-input {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px 0 42px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .field-input::placeholder { color: #CBD5E1; }
+
+  .field-input:focus {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-glow);
+  }
+
+  .field-input.valid {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+  }
+
+  .field-input.invalid {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    background: var(--error-bg);
+  }
+
+  .field-message {
+    font-size: 12px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .field-message.show { opacity: 1; }
+  .field-message.error { color: var(--error); }
+  .field-message.success { color: var(--success); }
+
+  .field-eye {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 16px;
+    user-select: none;
+  }
+
+  /* Options Row */
+  .options-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+
+  .checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .checkbox-wrapper input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    accent-color: var(--amber);
+    cursor: pointer;
+  }
+
+  .checkbox-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .forgot-link {
+    font-size: 13px;
+    color: var(--amber-dark);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .forgot-link:hover { text-decoration: underline; }
+
+  /* Submit Button */
+  .btn-submit {
+    width: 100%;
+    height: 52px;
+    background: var(--amber);
+    color: var(--text);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-submit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0);
+    transition: background 0.2s;
+  }
+
+  .btn-submit:hover::before { background: rgba(0,0,0,0.08); }
+
+  .btn-submit:active { transform: scale(0.99); }
+
+  .btn-submit.loading .btn-text { opacity: 0; }
+  .btn-submit.loading .btn-spinner { opacity: 1; }
+
+  .btn-spinner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    opacity: 0;
+    animation: spin 0.8s linear infinite;
+    transition: opacity 0.2s;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Error banner */
+  .error-banner {
+    background: var(--error-bg);
+    border: 1px solid #FECACA;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: all 0.25s ease;
+    pointer-events: none;
+  }
+
+  .error-banner.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .error-banner span {
+    font-size: 13px;
+    color: var(--error);
+    font-weight: 500;
+  }
+
+  /* Footer */
+  .form-footer {
+    margin-top: 24px;
+    text-align: center;
+  }
+
+  .form-footer p {
+    font-size: 12px;
+    color: #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .demo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #F8FAFC;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 4px 10px;
+    margin-top: 12px;
+  }
+
+  .demo-badge span {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .demo-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .divider-text {
+    font-size: 11px;
+    color: #CBD5E1;
+    white-space: nowrap;
+  }
+
+  /* Animate in */
+  .animate-in {
+    animation: fadeUp 0.4s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- LEFT: Brand Panel -->
+<div class="left-panel">
+  <div class="left-content animate-in">
+    <div class="brand">
+      <div class="brand-icon">🍺</div>
+      <div class="brand-name">Saíderas Desktop</div>
+    </div>
+
+    <h1 class="hero-title">
+      Gerencie sua<br>choperia com<br><span>inteligência.</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Sistema de back-office completo para controle de estoque, cardápio e equipe em tempo real.
+    </p>
+
+    <div class="features">
+      <div class="feature-item">
+        <div class="feature-dot">📊</div>
+        <span class="feature-text">Dashboard com indicadores em tempo real</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot">📦</div>
+        <span class="feature-text">Alertas automáticos de estoque crítico</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot">👥</div>
+        <span class="feature-text">Controle de acesso por perfil de cargo</span>
+      </div>
+    </div>
+
+    <div class="testimonial">
+      <p>"Agora vejo o estoque antes mesmo de abrir o bar. Economizei horas toda semana."</p>
+      <div class="testimonial-author">— Rafael M., Gerente</div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT: Login Form -->
+<div class="right-panel animate-in">
+  <div class="form-header">
+    <div class="form-eyebrow">Back-Office</div>
+    <h2 class="form-title">Bem-vindo de volta 👋</h2>
+    <p class="form-subtitle">Faça login para acessar o painel de gestão</p>
+  </div>
+
+  <div class="error-banner" id="errorBanner">
+    <span>⛔</span>
+    <span id="errorText">E-mail ou senha inválidos.</span>
+  </div>
+
+  <form id="loginForm" novalidate>
+    <div class="field-group">
+      <label class="field-label" for="email">E-mail corporativo</label>
+      <div class="field-wrapper">
+        <span class="field-icon">✉️</span>
+        <input
+          class="field-input"
+          type="email"
+          id="email"
+          name="email"
+          placeholder="seunome@choperia.com.br"
+          autocomplete="email"
+        />
+      </div>
+      <div class="field-message" id="emailMsg"></div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="password">Senha</label>
+      <div class="field-wrapper">
+        <span class="field-icon">🔒</span>
+        <input
+          class="field-input"
+          type="password"
+          id="password"
+          name="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+        />
+        <span class="field-eye" id="eyeToggle" onclick="togglePassword()">👁️</span>
+      </div>
+      <div class="field-message" id="passMsg"></div>
+    </div>
+
+    <div class="options-row">
+      <label class="checkbox-wrapper">
+        <input type="checkbox" id="rememberMe">
+        <span class="checkbox-label">Lembrar-me</span>
+      </label>
+      <a class="forgot-link" href="#" onclick="showForgot()">Esqueceu a senha?</a>
+    </div>
+
+    <button class="btn-submit" type="submit" id="loginBtn">
+      <span class="btn-spinner" id="spinner"></span>
+      <span class="btn-text">Entrar no Sistema →</span>
+    </button>
+  </form>
+
+  <div class="form-footer">
+    <div class="demo-badge">
+      <div class="demo-dot"></div>
+      <span>Banco de dados conectado · PostgreSQL</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const emailInput = document.getElementById('email');
+  const passInput = document.getElementById('password');
+  const emailMsg = document.getElementById('emailMsg');
+  const passMsg = document.getElementById('passMsg');
+  const errorBanner = document.getElementById('errorBanner');
+  const loginBtn = document.getElementById('loginBtn');
+
+  const VALID_EMAIL = 'rafael.moreira@choperia.com.br';
+  const VALID_PASS = 'rafael123';
+
+  function validateEmail(val) {
+    if (!val) return null;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  }
+
+  emailInput.addEventListener('blur', () => {
+    const v = validateEmail(emailInput.value);
+    if (v === false) {
+      emailInput.classList.add('invalid');
+      emailMsg.textContent = '⚠️ Formato de e-mail inválido';
+      emailMsg.className = 'field-message error show';
+    } else if (v === true) {
+      emailInput.classList.remove('invalid');
+      emailInput.classList.add('valid');
+      emailMsg.textContent = '✓ E-mail válido';
+      emailMsg.className = 'field-message success show';
+    }
+  });
+
+  emailInput.addEventListener('input', () => {
+    emailInput.classList.remove('invalid', 'valid');
+    emailMsg.className = 'field-message';
+    errorBanner.classList.remove('show');
+  });
+
+  passInput.addEventListener('input', () => {
+    errorBanner.classList.remove('show');
+    if (passInput.value.length > 0) {
+      passInput.classList.remove('invalid');
+    }
+  });
+
+  function togglePassword() {
+    const isPass = passInput.type === 'password';
+    passInput.type = isPass ? 'text' : 'password';
+    document.getElementById('eyeToggle').textContent = isPass ? '🙈' : '👁️';
+  }
+
+  function showForgot() {
+    alert('Recuperação de senha: entre em contato com o administrador do sistema.');
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    const pass = passInput.value;
+
+    if (!email || !pass) {
+      if (!email) { emailInput.classList.add('invalid'); emailInput.focus(); }
+      if (!pass) { passInput.classList.add('invalid'); }
+      return;
+    }
+
+    // Simulate loading
+    loginBtn.classList.add('loading');
+    loginBtn.disabled = true;
+
+    setTimeout(() => {
+      loginBtn.classList.remove('loading');
+      loginBtn.disabled = false;
+
+      if (email === VALID_EMAIL && pass === VALID_PASS) {
+        // Success — redirect to dashboard
+        window.location.href = 'dashboard.html';
+      } else {
+        errorBanner.classList.add('show');
+        passInput.value = '';
+        passInput.classList.add('invalid');
+        passInput.focus();
+      }
+    }, 1200);
+  });
+</script>
+</body>
+</html>

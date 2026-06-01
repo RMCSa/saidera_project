@@ -148,6 +148,22 @@ public class StockTransactionForm extends BaseDialog {
         footerPanel.add(saveBtn);
     }
 
+    public StockTransactionForm(Frame owner, boolean isEntry, Runnable onSaveCallback, StockItem preselectedItem) {
+        this(owner, isEntry, onSaveCallback);
+        if (preselectedItem != null) {
+            newItemToggle.setSelected(false);
+            newItemToggle.setVisible(false);
+            for (int i = 0; i < itemCombo.getItemCount(); i++) {
+                StockItem cItem = itemCombo.getItemAt(i);
+                if (cItem.getId().equals(preselectedItem.getId())) {
+                    itemCombo.setSelectedIndex(i);
+                    break;
+                }
+            }
+            updateCurrentStockLabel();
+        }
+    }
+
     private void handleSave(ActionEvent e) {
         int quantity = (Integer) quantitySpinner.getValue();
         int delta = isEntry ? quantity : -quantity;
