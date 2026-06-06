@@ -7,6 +7,8 @@
 *.key
 *.pem
 
+
+
 # Dependencies (AIOX)
 node_modules/
 node_modules
@@ -38,3 +40,9 @@ Thumbs.db
 .gemini
 .kimi
 .github
+
+*.class
+# Também ignore pastas de compilação comuns
+/bin/
+/out/
+/target/

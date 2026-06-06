@@ -23,11 +23,14 @@ public class TableActionCell extends AbstractCellEditor implements TableCellRend
         this.onEdit = onEdit;
         this.onDelete = onDelete;
         panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
-        panel.setOpaque(false);
+        panel.setOpaque(true);
 
         editBtn = new JButton("✎");
         editBtn.setFont(new Font("SansSerif", Font.PLAIN, 18));
         editBtn.setToolTipText("Editar");
+        editBtn.setBackground(new Color(0xEFF6FF));
+        editBtn.setForeground(new Color(0x2563EB));
+        editBtn.setBorder(BorderFactory.createLineBorder(new Color(0x93C5FD)));
         editBtn.addActionListener(e -> {
             fireEditingStopped();
             if (this.onEdit != null && editingRow >= 0) {
@@ -38,8 +41,10 @@ public class TableActionCell extends AbstractCellEditor implements TableCellRend
 
         deleteBtn = new JButton("🗑");
         deleteBtn.setFont(new Font("SansSerif", Font.PLAIN, 18));
-        deleteBtn.setForeground(Color.RED);
         deleteBtn.setToolTipText("Excluir");
+        deleteBtn.setBackground(new Color(0xFEF2F2));
+        deleteBtn.setForeground(UIPalette.ERROR);
+        deleteBtn.setBorder(BorderFactory.createLineBorder(new Color(0xFECACA)));
         deleteBtn.addActionListener(e -> {
             fireEditingStopped();
             if (this.onDelete != null && editingRow >= 0) {
@@ -60,6 +65,26 @@ public class TableActionCell extends AbstractCellEditor implements TableCellRend
         } else {
             panel.setBackground(table.getBackground());
         }
+        
+        // Estilo dinâmico baseado no tema ativo
+        if (com.formdev.flatlaf.FlatLaf.isLafDark()) {
+            editBtn.setBackground(new Color(0x1E3A8A));
+            editBtn.setForeground(new Color(0x60A5FA));
+            editBtn.setBorder(BorderFactory.createLineBorder(new Color(0x3B82F6)));
+            
+            deleteBtn.setBackground(new Color(0x7F1D1D));
+            deleteBtn.setForeground(new Color(0xFCA5A5));
+            deleteBtn.setBorder(BorderFactory.createLineBorder(new Color(0xEF4444)));
+        } else {
+            editBtn.setBackground(new Color(0xEFF6FF));
+            editBtn.setForeground(new Color(0x2563EB));
+            editBtn.setBorder(BorderFactory.createLineBorder(new Color(0x93C5FD)));
+            
+            deleteBtn.setBackground(new Color(0xFEF2F2));
+            deleteBtn.setForeground(UIPalette.ERROR);
+            deleteBtn.setBorder(BorderFactory.createLineBorder(new Color(0xFECACA)));
+        }
+        
         return panel;
     }
 
@@ -67,6 +92,26 @@ public class TableActionCell extends AbstractCellEditor implements TableCellRend
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
         this.editingRow = row;
         this.editingTable = table;
+        
+        // Estilo dinâmico baseado no tema ativo
+        if (com.formdev.flatlaf.FlatLaf.isLafDark()) {
+            editBtn.setBackground(new Color(0x1E3A8A));
+            editBtn.setForeground(new Color(0x60A5FA));
+            editBtn.setBorder(BorderFactory.createLineBorder(new Color(0x3B82F6)));
+            
+            deleteBtn.setBackground(new Color(0x7F1D1D));
+            deleteBtn.setForeground(new Color(0xFCA5A5));
+            deleteBtn.setBorder(BorderFactory.createLineBorder(new Color(0xEF4444)));
+        } else {
+            editBtn.setBackground(new Color(0xEFF6FF));
+            editBtn.setForeground(new Color(0x2563EB));
+            editBtn.setBorder(BorderFactory.createLineBorder(new Color(0x93C5FD)));
+            
+            deleteBtn.setBackground(new Color(0xFEF2F2));
+            deleteBtn.setForeground(UIPalette.ERROR);
+            deleteBtn.setBorder(BorderFactory.createLineBorder(new Color(0xFECACA)));
+        }
+        
         return panel;
     }
 

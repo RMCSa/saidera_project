@@ -34,7 +34,6 @@ public class DataRepository {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement("ALTER TABLE \"User\" ALTER COLUMN username TYPE VARCHAR(100)")) {
             stmt.executeUpdate();
-            System.out.println("Tabela 'User' alterada com sucesso para suportar e-mails de ate 100 caracteres.");
         } catch (SQLException e) {
             // Quietly print warning if we can't alter column type (e.g. if db is not ready, or table is missing)
             System.err.println("Aviso ao ajustar tamanho da coluna username: " + e.getMessage());
@@ -254,6 +253,21 @@ public class DataRepository {
         }
     }
 
+    public void updateProduct(Product p) {
+        String sql = "UPDATE \"Product\" SET name = ?, category = ?::\"ProductCategory\", \"sellingPrice\" = ?, \"updatedAt\" = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, p.getName());
+            stmt.setString(2, mapCategoryJavaToDb(p.getCategory()));
+            stmt.setDouble(3, p.getPrice());
+            stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+            stmt.setString(5, p.getId());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void addUser(User u) {
         String sql = "INSERT INTO \"User\" (id, name, username, password, role, \"createdAt\", \"updatedAt\") VALUES (?, ?, ?, ?, ?::\"UserRole\", ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -277,6 +291,31 @@ public class DataRepository {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateUser(User u) {
+        // Se senha for nula ou vazia, mantém a senha atual no banco
+        String sql = (u.getPassword() != null && !u.getPassword().isEmpty())
+            ? "UPDATE \"User\" SET name = ?, username = ?, password = ?, role = ?::\"UserRole\", \"updatedAt\" = ? WHERE id = ?"
+            : "UPDATE \"User\" SET name = ?, username = ?, role = ?::\"UserRole\", \"updatedAt\" = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, u.getName());
+            stmt.setString(2, u.getEmail());
+            if (u.getPassword() != null && !u.getPassword().isEmpty()) {
+                stmt.setString(3, u.getPassword());
+                stmt.setString(4, mapRoleJavaToDb(u.getRole()));
+                stmt.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
+                stmt.setString(6, u.getId());
+            } else {
+                stmt.setString(3, mapRoleJavaToDb(u.getRole()));
+                stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+                stmt.setString(5, u.getId());
+            }
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

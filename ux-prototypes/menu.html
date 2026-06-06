@@ -1,338 +1,893 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<title>Saíderas — Cardápio</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --amber: #FFBF00; --amber-dark: #795900; --amber-light: #FFF8DC; --amber-glow: rgba(255,191,0,0.15);
-    --slate: #203243; --slate-light: #2C4259; --slate-border: rgba(255,255,255,0.08);
-    --bg: #F0F4FF; --surface: #FFFFFF; --surface-2: #F8FAFC; --border: #E2E8F0;
-    --text: #0F172A; --text-muted: #64748B;
-    --error: #DC2626; --error-bg: #FEF2F2; --error-border: #FECACA;
-    --success: #16A34A; --success-bg: #F0FDF4;
-    --warning: #D97706; --warning-bg: #FFFBEB;
-    --info: #2563EB; --info-bg: #EFF6FF;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
-    --radius: 12px; --radius-sm: 8px; --radius-xs: 6px;
-    --sidebar-w: 248px; --header-h: 64px;
-  }
-  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-  .sidebar { width: var(--sidebar-w); background: var(--slate); display: flex; flex-direction: column; flex-shrink: 0; height: 100vh; overflow: hidden; }
-  .sidebar-brand { padding: 24px 20px 20px; border-bottom: 1px solid var(--slate-border); }
-  .brand-row { display: flex; align-items: center; gap: 10px; }
-  .brand-icon { width: 40px; height: 40px; background: var(--amber); border-radius: var(--radius-xs); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-  .brand-name { font-size: 16px; font-weight: 800; color: var(--amber); letter-spacing: -0.3px; line-height: 1.2; }
-  .brand-tag { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
-  .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
-  .nav-section-label { padding: 8px 20px 4px; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-top: 8px; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; margin: 1px 8px; border-radius: var(--radius-xs); cursor: pointer; transition: all 0.15s ease; text-decoration: none; }
-  .nav-item:hover { background: rgba(255,255,255,0.06); }
-  .nav-item.active { background: rgba(255,191,0,0.12); border: 1px solid rgba(255,191,0,0.2); }
-  .nav-item.active .nav-icon { color: var(--amber); }
-  .nav-item.active .nav-label { color: var(--amber); font-weight: 600; }
-  .nav-icon { font-size: 17px; width: 20px; text-align: center; color: rgba(255,255,255,0.45); }
-  .nav-label { font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.6); flex: 1; }
-  .nav-badge { background: var(--error); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 100px; }
-  .sidebar-footer { padding: 16px 20px 20px; border-top: 1px solid var(--slate-border); }
-  .capacity-label { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 8px; display: flex; justify-content: space-between; }
-  .capacity-pct { color: var(--amber); }
-  .progress-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 100px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--amber), #FFD740); border-radius: 100px; }
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .topbar { height: var(--header-h); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; flex-shrink: 0; box-shadow: var(--shadow-sm); }
-  .topbar-left { display: flex; align-items: center; gap: 12px; }
-  .page-title { font-size: 16px; font-weight: 700; color: var(--text); }
-  .page-breadcrumb { font-size: 12px; color: var(--text-muted); }
-  .breadcrumb-sep { margin: 0 6px; color: var(--border); }
-  .topbar-right { display: flex; align-items: center; gap: 16px; }
-  .user-pill { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 12px 4px 4px; border-radius: 100px; border: 1px solid var(--border); transition: background 0.15s; }
-  .user-pill:hover { background: var(--bg); }
-  .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--amber), #FF8C00); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--text); }
-  .user-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.2; }
-  .user-role { font-size: 10px; color: var(--text-muted); }
-  .logout-btn { font-size: 12px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: var(--radius-xs); transition: all 0.15s; }
-  .logout-btn:hover { background: var(--bg); color: var(--error); }
+  <meta charset="UTF-8">
+  <title>Saidera — Cardápio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  /* CONTENT */
-  .content { flex: 1; overflow-y: auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
+    :root {
+      --amber: #FFBF00;
+      --amber-dark: #795900;
+      --amber-light: #FFF8DC;
+      --amber-glow: rgba(255, 191, 0, 0.15);
+      --slate: #203243;
+      --slate-light: #2C4259;
+      --slate-border: rgba(255, 255, 255, 0.08);
+      --bg: #F0F4FF;
+      --surface: #FFFFFF;
+      --surface-2: #F8FAFC;
+      --border: #E2E8F0;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --error: #DC2626;
+      --error-bg: #FEF2F2;
+      --error-border: #FECACA;
+      --success: #16A34A;
+      --success-bg: #F0FDF4;
+      --warning: #D97706;
+      --warning-bg: #FFFBEB;
+      --info: #2563EB;
+      --info-bg: #EFF6FF;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --sidebar-w: 248px;
+      --header-h: 64px;
+    }
 
-  /* PAGE HEADER */
-  .page-header { display: flex; align-items: flex-start; justify-content: space-between; }
-  .page-header-text .ph-title { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
-  .page-header-text .ph-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-  .btn-primary { background: var(--amber); color: var(--text); border: none; border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 18px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
-  .btn-primary:hover { filter: brightness(0.93); transform: translateY(-1px); }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-  /* FILTERS BAR */
-  .filters-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .chips-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .chip { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 600; cursor: pointer; background: var(--surface); color: var(--text-muted); transition: all 0.15s; }
-  .chip:hover { border-color: #CBD5E1; color: var(--text); }
-  .chip.active { background: var(--amber); border-color: var(--amber); color: var(--amber-dark); }
-  .chip-count { background: rgba(0,0,0,0.08); color: inherit; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 100px; }
-  .chip.active .chip-count { background: rgba(0,0,0,0.12); }
-  .search-wrap { position: relative; }
-  .search-input { height: 36px; padding: 0 12px 0 34px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-size: 13px; color: var(--text); background: var(--surface); outline: none; transition: all 0.2s; width: 220px; }
-  .search-input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-glow); }
-  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--slate);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-  /* TABLE */
-  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
-  table { width: 100%; border-collapse: collapse; }
-  thead tr { background: var(--surface-2); }
-  th { padding: 12px 16px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
-  td { padding: 0 16px; font-size: 13px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; height: 64px; }
-  tr:last-child td { border-bottom: none; }
-  tbody tr { transition: background 0.12s; cursor: default; }
-  tbody tr:hover td { background: #FAFBFF; }
+    .sidebar-brand {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--slate-border);
+    }
 
-  /* Product name cell */
-  .prod-name { font-weight: 600; color: var(--text); }
-  .prod-id { font-size: 10px; color: #94A3B8; font-family: monospace; margin-top: 2px; }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-  /* Status badge */
-  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
-  .badge.active { background: #DCFCE7; color: var(--success); }
-  .badge.inactive { background: #F1F5F9; color: var(--text-muted); }
-  .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--amber);
+      border-radius: var(--radius-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
 
-  /* Category chip in table */
-  .cat-pill { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
-  .cat-pill.chopps { background: #FEF3C7; color: #92400E; }
-  .cat-pill.petiscos { background: #FCE7F3; color: #831843; }
-  .cat-pill.drinks { background: #E0E7FF; color: #3730A3; }
-  .cat-pill.hambúrgueres { background: #D1FAE5; color: #065F46; }
-  .cat-pill.outros { background: #F1F5F9; color: var(--text-muted); }
+    .brand-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--amber);
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+    }
 
-  /* Stock progress in table */
-  .stock-cell { min-width: 120px; }
-  .stock-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
-  .stock-val { font-weight: 600; }
-  .mini-progress { height: 4px; background: #F1F5F9; border-radius: 100px; overflow: hidden; }
-  .mini-fill { height: 100%; border-radius: 100px; }
+    .brand-tag {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.35);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
 
-  /* Actions */
-  .actions-cell { white-space: nowrap; }
-  .action-btn { width: 30px; height: 30px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface); cursor: pointer; font-size: 14px; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; }
-  .action-btn:hover { background: var(--bg); border-color: #CBD5E1; }
-  .action-btn.delete:hover { background: var(--error-bg); border-color: var(--error-border); }
+    .sidebar-nav {
+      flex: 1;
+      padding: 12px 0;
+      overflow-y: auto;
+    }
 
-  /* Pagination */
-  .table-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); }
-  .table-info { font-size: 12px; color: var(--text-muted); }
-  .pagination { display: flex; gap: 4px; }
-  .page-btn { width: 30px; height: 30px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface); cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.15s; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
-  .page-btn:hover { background: var(--bg); }
-  .page-btn.active { background: var(--amber); border-color: var(--amber); color: var(--amber-dark); }
-</style>
+    .nav-section-label {
+      padding: 8px 20px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.2);
+      margin-top: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      margin: 1px 8px;
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-item.active {
+      background: rgba(255, 191, 0, 0.12);
+      border: 1px solid rgba(255, 191, 0, 0.2);
+    }
+
+    .nav-item.active .nav-icon {
+      color: var(--amber);
+    }
+
+    .nav-item.active .nav-label {
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .nav-icon {
+      font-size: 17px;
+      width: 20px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .nav-label {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.6);
+      flex: 1;
+    }
+
+    .nav-badge {
+      background: var(--error);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 100px;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px 20px;
+      border-top: 1px solid var(--slate-border);
+    }
+
+    .capacity-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.3);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .capacity-pct {
+      color: var(--amber);
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--amber), #FFD740);
+      border-radius: 100px;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: var(--header-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .page-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .page-breadcrumb {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .breadcrumb-sep {
+      margin: 0 6px;
+      color: var(--border);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 4px 12px 4px 4px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .user-pill:hover {
+      background: var(--bg);
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--amber), #FF8C00);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .user-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .user-role {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .logout-btn {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--radius-xs);
+      transition: all 0.15s;
+    }
+
+    .logout-btn:hover {
+      background: var(--bg);
+      color: var(--error);
+    }
+
+    /* CONTENT */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* PAGE HEADER */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .page-header-text .ph-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .page-header-text .ph-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .btn-primary {
+      background: var(--amber);
+      color: var(--text);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(0.93);
+      transform: translateY(-1px);
+    }
+
+    /* FILTERS BAR */
+    .filters-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .chips-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      border: 1.5px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+
+    .chip:hover {
+      border-color: #CBD5E1;
+      color: var(--text);
+    }
+
+    .chip.active {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: var(--amber-dark);
+    }
+
+    .chip-count {
+      background: rgba(0, 0, 0, 0.08);
+      color: inherit;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 100px;
+    }
+
+    .chip.active .chip-count {
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-input {
+      height: 36px;
+      padding: 0 12px 0 34px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: all 0.2s;
+      width: 220px;
+    }
+
+    .search-input:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 3px var(--amber-glow);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    /* TABLE */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: var(--surface-2);
+    }
+
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0 16px;
+      font-size: 13px;
+      border-bottom: 1px solid #F1F5F9;
+      vertical-align: middle;
+      height: 64px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr {
+      transition: background 0.12s;
+      cursor: default;
+    }
+
+    tbody tr:hover td {
+      background: #FAFBFF;
+    }
+
+    /* Product name cell */
+    .prod-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .prod-id {
+      font-size: 10px;
+      color: #94A3B8;
+      font-family: monospace;
+      margin-top: 2px;
+    }
+
+    /* Status badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge.active {
+      background: #DCFCE7;
+      color: var(--success);
+    }
+
+    .badge.inactive {
+      background: #F1F5F9;
+      color: var(--text-muted);
+    }
+
+    .badge-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* Category chip in table */
+    .cat-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .cat-pill.chopps {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .cat-pill.petiscos {
+      background: #FCE7F3;
+      color: #831843;
+    }
+
+    .cat-pill.drinks {
+      background: #E0E7FF;
+      color: #3730A3;
+    }
+
+    .cat-pill.hambúrgueres {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+
+    .cat-pill.outros {
+      background: #F1F5F9;
+      color: var(--text-muted);
+    }
+
+    /* Stock progress in table */
+    .stock-cell {
+      min-width: 120px;
+    }
+
+    .stock-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .stock-val {
+      font-weight: 600;
+    }
+
+    .mini-progress {
+      height: 4px;
+      background: #F1F5F9;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .mini-fill {
+      height: 100%;
+      border-radius: 100px;
+    }
+
+    /* Actions */
+    .actions-cell {
+      white-space: nowrap;
+    }
+
+    .action-btn {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .action-btn:hover {
+      background: var(--bg);
+      border-color: #CBD5E1;
+    }
+
+    .action-btn.delete:hover {
+      background: var(--error-bg);
+      border-color: var(--error-border);
+    }
+
+    /* Pagination */
+    .table-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-2);
+    }
+
+    .table-info {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .pagination {
+      display: flex;
+      gap: 4px;
+    }
+
+    .page-btn {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+
+    .page-btn:hover {
+      background: var(--bg);
+    }
+
+    .page-btn.active {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: var(--amber-dark);
+    }
+  </style>
 </head>
+
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div class="brand-row">
-      <div class="brand-icon">🍺</div>
-      <div style="flex:1;">
-        <div class="brand-name">Saíderas</div>
-        <div class="brand-tag">Back-Office v2</div>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-row">
+        <div class="brand-icon">🍺</div>
+        <div style="flex:1;">
+          <div class="brand-name">Saidera</div>
+          <div class="brand-tag">Back-Office v2</div>
+        </div>
       </div>
     </div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
-    <a class="nav-item active" href="menu.html"><span class="nav-icon">🍴</span><span class="nav-label">Cardápio</span></a>
-    <a class="nav-item" href="inventory.html"><span class="nav-icon">📦</span><span class="nav-label">Estoque</span><span class="nav-badge">2</span></a>
-    <div class="nav-section-label">Equipe</div>
-    <a class="nav-item" href="users.html"><span class="nav-icon">👥</span><span class="nav-label">Usuários</span></a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="capacity-label"><span>Estoque Estável</span><span class="capacity-pct">50%</span></div>
-    <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
-  </div>
-</aside>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span><span
+          class="nav-label">Dashboard</span></a>
+      <a class="nav-item active" href="menu.html"><span class="nav-icon">🍴</span><span
+          class="nav-label">Cardápio</span></a>
+      <a class="nav-item" href="inventory.html"><span class="nav-icon">📦</span><span
+          class="nav-label">Estoque</span><span class="nav-badge">2</span></a>
+      <div class="nav-section-label">Equipe</div>
+      <a class="nav-item" href="users.html"><span class="nav-icon">👥</span><span class="nav-label">Usuários</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="capacity-label"><span>Estoque Estável</span><span class="capacity-pct">50%</span></div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:50%"></div>
+      </div>
+    </div>
+  </aside>
 
-<div class="main">
-  <header class="topbar">
-    <div class="topbar-left">
-      <div>
-        <div class="page-title">Cardápio</div>
-        <div class="page-breadcrumb">Saíderas <span class="breadcrumb-sep">›</span> Gestão de Cardápio</div>
-      </div>
-    </div>
-    <div class="topbar-right">
-      <div class="user-pill">
-        <div class="avatar">RM</div>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
         <div>
-          <div class="user-name">Rafael Moreira</div>
-          <div class="user-role">Admin</div>
+          <div class="page-title">Cardápio</div>
+          <div class="page-breadcrumb">Saidera <span class="breadcrumb-sep">›</span> Gestão de Cardápio</div>
         </div>
       </div>
-      <button class="logout-btn" onclick="window.location.href='login.html'">← Sair</button>
-    </div>
-  </header>
+      <div class="topbar-right">
+        <div class="user-pill">
+          <div class="avatar">RM</div>
+          <div>
+            <div class="user-name">Rafael Moreira</div>
+            <div class="user-role">Admin</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="window.location.href='login.html'">← Sair</button>
+      </div>
+    </header>
 
-  <main class="content">
-    <!-- PAGE HEADER -->
-    <div class="page-header">
-      <div class="page-header-text">
-        <div class="ph-title">Gestão de Cardápio 🍴</div>
-        <div class="ph-sub">Curadoria e controle dos produtos do taproom</div>
+    <main class="content">
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <div class="page-header-text">
+          <div class="ph-title">Gestão de Cardápio 🍴</div>
+          <div class="ph-sub">Curadoria e controle dos produtos do taproom</div>
+        </div>
+        <button class="btn-primary" onclick="alert('Formulário de novo produto')">
+          + Novo Produto
+        </button>
       </div>
-      <button class="btn-primary" onclick="alert('Formulário de novo produto')">
-        + Novo Produto
-      </button>
-    </div>
 
-    <!-- FILTERS -->
-    <div class="filters-bar">
-      <div class="chips-row">
-        <div class="chip active" onclick="filterCat(this, null)">
-          Todos <span class="chip-count">4</span>
+      <!-- FILTERS -->
+      <div class="filters-bar">
+        <div class="chips-row">
+          <div class="chip active" onclick="filterCat(this, null)">
+            Todos <span class="chip-count">4</span>
+          </div>
+          <div class="chip" onclick="filterCat(this, 'Chopps')">
+            🍺 Chopps <span class="chip-count">1</span>
+          </div>
+          <div class="chip" onclick="filterCat(this, 'Petiscos')">
+            🍟 Petiscos <span class="chip-count">1</span>
+          </div>
+          <div class="chip" onclick="filterCat(this, 'Drinks')">
+            🍹 Drinks <span class="chip-count">1</span>
+          </div>
+          <div class="chip" onclick="filterCat(this, 'Hambúrgueres')">
+            🍔 Hambúrgueres <span class="chip-count">1</span>
+          </div>
         </div>
-        <div class="chip" onclick="filterCat(this, 'Chopps')">
-          🍺 Chopps <span class="chip-count">1</span>
-        </div>
-        <div class="chip" onclick="filterCat(this, 'Petiscos')">
-          🍟 Petiscos <span class="chip-count">1</span>
-        </div>
-        <div class="chip" onclick="filterCat(this, 'Drinks')">
-          🍹 Drinks <span class="chip-count">1</span>
-        </div>
-        <div class="chip" onclick="filterCat(this, 'Hambúrgueres')">
-          🍔 Hambúrgueres <span class="chip-count">1</span>
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" type="search" placeholder="Buscar produto..." id="searchInput"
+            oninput="doSearch()">
         </div>
       </div>
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" type="search" placeholder="Buscar produto..." id="searchInput" oninput="doSearch()">
-      </div>
-    </div>
 
-    <!-- TABLE -->
-    <div class="table-card">
-      <table>
-        <thead>
-          <tr>
-            <th>Produto</th>
-            <th>Categoria</th>
-            <th>Preço</th>
-            <th>Estoque Vinculado</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <tr data-cat="Chopps">
-            <td>
-              <div class="prod-name">IPA Imperial Sunset</div>
-              <div class="prod-id">S01</div>
-            </td>
-            <td><span class="cat-pill chopps">Chopps</span></td>
-            <td style="font-weight:700;">R$ 28,00</td>
-            <td class="stock-cell">
-              <div class="stock-info">
-                <span class="stock-val" style="color:var(--error);">2 L</span>
-                <span style="color:var(--text-muted);">/ mín. 5L</span>
-              </div>
-              <div class="mini-progress">
-                <div class="mini-fill" style="width:40%; background:var(--error);"></div>
-              </div>
-            </td>
-            <td><span class="badge active"><span class="badge-dot"></span> Ativo</span></td>
-            <td class="actions-cell">
-              <button class="action-btn" title="Editar" onclick="alert('Editar IPA Imperial Sunset')">✎</button>
-              <button class="action-btn delete" title="Excluir" onclick="deleteRow(this)">🗑</button>
-            </td>
-          </tr>
-          <tr data-cat="Petiscos">
-            <td>
-              <div class="prod-name">Batata Rústica Alecrim</div>
-              <div class="prod-id">S02</div>
-            </td>
-            <td><span class="cat-pill petiscos">Petiscos</span></td>
-            <td style="font-weight:700;">R$ 34,00</td>
-            <td class="stock-cell">
-              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">— Serviço</div>
-            </td>
-            <td><span class="badge active"><span class="badge-dot"></span> Ativo</span></td>
-            <td class="actions-cell">
-              <button class="action-btn" title="Editar" onclick="alert('Editar produto')">✎</button>
-              <button class="action-btn delete" title="Excluir" onclick="deleteRow(this)">🗑</button>
-            </td>
-          </tr>
-          <tr data-cat="Drinks">
-            <td>
-              <div class="prod-name">Gin Tônica Verão</div>
-              <div class="prod-id">S03</div>
-            </td>
-            <td><span class="cat-pill drinks">Drinks</span></td>
-            <td style="font-weight:700;">R$ 32,00</td>
-            <td class="stock-cell">
-              <div class="stock-info">
-                <span class="stock-val" style="color:var(--success);">8 un</span>
-                <span style="color:var(--text-muted);">/ mín. 4</span>
-              </div>
-              <div class="mini-progress">
-                <div class="mini-fill" style="width:100%; background:var(--success);"></div>
-              </div>
-            </td>
-            <td><span class="badge active"><span class="badge-dot"></span> Ativo</span></td>
-            <td class="actions-cell">
-              <button class="action-btn" title="Editar" onclick="alert('Editar produto')">✎</button>
-              <button class="action-btn delete" title="Excluir" onclick="deleteRow(this)">🗑</button>
-            </td>
-          </tr>
-          <tr data-cat="Hambúrgueres">
-            <td>
-              <div class="prod-name">Burger Artesanal Bacon</div>
-              <div class="prod-id">S04</div>
-            </td>
-            <td><span class="cat-pill hambúrgueres">Hambúrgueres</span></td>
-            <td style="font-weight:700;">R$ 42,00</td>
-            <td class="stock-cell">
-              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">— Serviço</div>
-            </td>
-            <td><span class="badge active"><span class="badge-dot"></span> Ativo</span></td>
-            <td class="actions-cell">
-              <button class="action-btn" title="Editar" onclick="alert('Editar produto')">✎</button>
-              <button class="action-btn delete" title="Excluir" onclick="deleteRow(this)">🗑</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="table-footer">
-        <div class="table-info">Mostrando 4 de 4 produtos</div>
-        <div class="pagination">
-          <button class="page-btn active">1</button>
+      <!-- TABLE -->
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Categoria</th>
+              <th>Preço</th>
+              <th>Estoque Vinculado</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr data-cat="Chopps">
+              <td>
+                <div class="prod-name">IPA Imperial Sunset</div>
+                <div class="prod-id">S01</div>
+              </td>
+              <td><span class="cat-pill chopps">Chopps</span></td>
+              <td style="font-weight:700;">R$ 28,00</td>
+              <td class="stock-cell">
+                <div class="stock-info">
+                  <span class="stock-val" style="color:var(--error);">2 L</span>
+                  <span style="color:var(--text-muted);">/ mín. 5L</span>
+                </div>
+                <div class="mini-progress">
+                  <div class="mini-fill" style="width:40%; background:var(--error);"></div>
+                </div>
+              </td>
+              <td><span class="badge active"><span class="badge-dot"></span> Ativo</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" title="Editar" onclick="alert('Editar IPA Imperial Sunset')">✎</button>
+                <button class="action-btn delete" title="Excluir" onclick="deleteRow(this)">🗑</button>
+              </td>
+            </tr>
+            <tr data-cat="Petiscos">
+              <td>
+                <div class="prod-name">Batata Rústica Alecrim</div>
+                <div class="prod-id">S02</div>
+              </td>
+              <td><span class="cat-pill petiscos">Petiscos</span></td>
+              <td style="font-weight:700;">R$ 34,00</td>
+              <td class="stock-cell">
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">— Serviço</div>
+              </td>
+              <td><span class="badge active"><span class="badge-dot"></span> Ativo</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" title="Editar" onclick="alert('Editar produto')">✎</button>
+                <button class="action-btn delete" title="Excluir" onclick="deleteRow(this)">🗑</button>
+              </td>
+            </tr>
+            <tr data-cat="Drinks">
+              <td>
+                <div class="prod-name">Gin Tônica Verão</div>
+                <div class="prod-id">S03</div>
+              </td>
+              <td><span class="cat-pill drinks">Drinks</span></td>
+              <td style="font-weight:700;">R$ 32,00</td>
+              <td class="stock-cell">
+                <div class="stock-info">
+                  <span class="stock-val" style="color:var(--success);">8 un</span>
+                  <span style="color:var(--text-muted);">/ mín. 4</span>
+                </div>
+                <div class="mini-progress">
+                  <div class="mini-fill" style="width:100%; background:var(--success);"></div>
+                </div>
+              </td>
+              <td><span class="badge active"><span class="badge-dot"></span> Ativo</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" title="Editar" onclick="alert('Editar produto')">✎</button>
+                <button class="action-btn delete" title="Excluir" onclick="deleteRow(this)">🗑</button>
+              </td>
+            </tr>
+            <tr data-cat="Hambúrgueres">
+              <td>
+                <div class="prod-name">Burger Artesanal Bacon</div>
+                <div class="prod-id">S04</div>
+              </td>
+              <td><span class="cat-pill hambúrgueres">Hambúrgueres</span></td>
+              <td style="font-weight:700;">R$ 42,00</td>
+              <td class="stock-cell">
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">— Serviço</div>
+              </td>
+              <td><span class="badge active"><span class="badge-dot"></span> Ativo</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" title="Editar" onclick="alert('Editar produto')">✎</button>
+                <button class="action-btn delete" title="Excluir" onclick="deleteRow(this)">🗑</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <div class="table-info">Mostrando 4 de 4 produtos</div>
+          <div class="pagination">
+            <button class="page-btn active">1</button>
+          </div>
         </div>
       </div>
-    </div>
-  </main>
-</div>
+    </main>
+  </div>
 
-<script>
-  function filterCat(el, cat) {
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-    document.querySelectorAll('#tableBody tr').forEach(tr => {
-      tr.style.display = (!cat || tr.dataset.cat === cat) ? '' : 'none';
-    });
-  }
-  function doSearch() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
-    document.querySelectorAll('#tableBody tr').forEach(tr => {
-      tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
-    });
-  }
-  function deleteRow(btn) {
-    if (confirm('Excluir este produto do cardápio?')) {
-      btn.closest('tr').remove();
+  <script>
+    function filterCat(el, cat) {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      document.querySelectorAll('#tableBody tr').forEach(tr => {
+        tr.style.display = (!cat || tr.dataset.cat === cat) ? '' : 'none';
+      });
     }
-  }
-</script>
+    function doSearch() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      document.querySelectorAll('#tableBody tr').forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    }
+    function deleteRow(btn) {
+      if (confirm('Excluir este produto do cardápio?')) {
+        btn.closest('tr').remove();
+      }
+    }
+  </script>
 </body>
+
 </html>

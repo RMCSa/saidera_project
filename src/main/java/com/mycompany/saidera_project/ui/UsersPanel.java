@@ -21,6 +21,17 @@ public class UsersPanel extends JPanel {
     private JLabel sessionValueLabel;
     private JLabel adminsValueLabel;
 
+    private JLabel title;
+    private JLabel sub;
+    private JScrollPane scrollPane;
+    private JPanel roleCard;
+    private JLabel roleTitle;
+    private JLabel roleContent;
+    private JPanel sessionCard;
+    private JLabel sessionTitle;
+    private JLabel sessionContent;
+    private final java.util.List<JPanel> metricCards = new java.util.ArrayList<>();
+
     public UsersPanel() {
         setLayout(new BorderLayout());
         setBackground(UIPalette.BACKGROUND);
@@ -32,12 +43,12 @@ public class UsersPanel extends JPanel {
 
         JPanel titlePanel = new JPanel(new GridLayout(2, 1));
         titlePanel.setOpaque(false);
-        JLabel title = new JLabel("Usuários");
+        title = new JLabel("Usuários");
         title.setFont(UIPalette.FONT_DISPLAY.deriveFont(32f));
         title.setForeground(UIPalette.ON_BACKGROUND);
         titlePanel.add(title);
 
-        JLabel sub = new JLabel("Gerencie os acessos e perfis da sua equipe.");
+        sub = new JLabel("Gerencie os acessos e perfis da sua equipe.");
         sub.setFont(UIPalette.FONT_BODY);
         sub.setForeground(UIPalette.TEXT_SECONDARY);
         titlePanel.add(sub);
@@ -60,7 +71,10 @@ public class UsersPanel extends JPanel {
             Window owner = SwingUtilities.getWindowAncestor(this);
             new UserForm((Frame) owner, this::refreshTable).setVisible(true);
         });
-        header.add(addBtn, BorderLayout.EAST);
+        JPanel btnWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 10));
+        btnWrapper.setOpaque(false);
+        btnWrapper.add(addBtn);
+        header.add(btnWrapper, BorderLayout.EAST);
 
         add(header, BorderLayout.NORTH);
 
@@ -72,9 +86,9 @@ public class UsersPanel extends JPanel {
         // Metrics Row
         JPanel kpiPanel = new JPanel(new GridLayout(1, 3, 20, 0));
         kpiPanel.setOpaque(false);
-        kpiPanel.add(createMetricCard("USUÁRIOS CADASTRADOS", "00", "no sistema", "👥", new Color(0xEFF6FF)));
-        kpiPanel.add(createMetricCard("SESSÃO ATIVA", "00", "neste terminal", "🔑", new Color(0xECFDF5)));
-        kpiPanel.add(createMetricCard("PERFIS ADMIN", "00", "com permissão", "👑", new Color(0xFFFBEB)));
+        kpiPanel.add(addMetricCard("USUÁRIOS CADASTRADOS", "00", "no sistema", "👥", new Color(0xEFF6FF)));
+        kpiPanel.add(addMetricCard("SESSÃO ATIVA", "00", "neste terminal", "🔑", new Color(0xECFDF5)));
+        kpiPanel.add(addMetricCard("PERFIS ADMIN", "00", "com permissão", "👑", new Color(0xFFFBEB)));
         centerPanel.add(kpiPanel, BorderLayout.NORTH);
 
         updateMetrics();
@@ -89,12 +103,70 @@ public class UsersPanel extends JPanel {
         };
         refreshTable();
 
-        table = new JTable(model);
+        table = new JTable(model) {
+            private int hoveredRow = -1;
+            {
+                addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+                    @Override
+                    public void mouseMoved(java.awt.event.MouseEvent e) {
+                        int row = rowAtPoint(e.getPoint());
+                        if (row != hoveredRow) {
+                            hoveredRow = row;
+                            repaint();
+                        }
+                    }
+                });
+                addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent e) {
+                        hoveredRow = -1;
+                        repaint();
+                    }
+                });
+            }
+            @Override
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                if (!isRowSelected(row)) {
+                    if (row == hoveredRow) {
+                        c.setBackground(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x334155) : new Color(0xF1F5F9));
+                    } else if (row % 2 == 0) {
+                        c.setBackground(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x283548) : new Color(0xF8FAFC));
+                    } else {
+                        c.setBackground(UIPalette.SURFACE);
+                    }
+                }
+                return c;
+            }
+        };
         table.setRowHeight(50);
+        table.setFillsViewportHeight(true);
+
+        // Oculta a coluna ID (UUID) da tabela de Usuários para uma visualização mais limpa
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setWidth(0);
 
         // Setup Action Column
         TableActionCell actionCell = new TableActionCell(
-                e -> JOptionPane.showMessageDialog(this, "Edição indisponível na versão demo."),
+                e -> {
+                    if (!isAdmin) {
+                        JOptionPane.showMessageDialog(this, "Você não tem permissão para editar usuários.",
+                                "Acesso Restrito", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    int row = Integer.parseInt(e.getActionCommand());
+                    if (row < 0 || row >= model.getRowCount()) return;
+                    table.getSelectionModel().setSelectionInterval(row, row);
+                    String id = (String) model.getValueAt(row, 0);
+                    User toEdit = DataRepository.getInstance().getUsers().stream()
+                            .filter(u -> u.getId().equals(id))
+                            .findFirst().orElse(null);
+                    if (toEdit != null) {
+                        Window owner = SwingUtilities.getWindowAncestor(this);
+                        new UserForm((Frame) owner, this::refreshTable, toEdit).setVisible(true);
+                    }
+                },
                 e -> {
                     if (!isAdmin) {
                         JOptionPane.showMessageDialog(this, "Você não tem permissão para excluir usuários.",
@@ -143,7 +215,7 @@ public class UsersPanel extends JPanel {
             private final JLabel initialsLabel = new JLabel();
             private String nameText = "";
             {
-                panel.setOpaque(false);
+                panel.setOpaque(true);
                 avatarCircle.setPreferredSize(new Dimension(32, 32));
                 avatarCircle.setOpaque(false);
                 initialsLabel.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
@@ -246,7 +318,7 @@ public class UsersPanel extends JPanel {
             }
         });
 
-        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane = new JScrollPane(table);
         scrollPane.getViewport().setBackground(Color.WHITE);
         scrollPane.setBorder(BorderFactory.createLineBorder(UIPalette.BORDER));
         centerPanel.add(scrollPane, BorderLayout.CENTER);
@@ -259,12 +331,14 @@ public class UsersPanel extends JPanel {
         footer.setBorder(new EmptyBorder(20, 0, 0, 0));
 
         // Role summary card
-        JPanel roleCard = new JPanel(new BorderLayout());
-        roleCard.setBackground(UIPalette.SLATE);
-        roleCard.setBorder(new EmptyBorder(20, 20, 20, 20));
-        JLabel roleTitle = new JLabel("PERFIS CADASTRADOS");
+        roleCard = new JPanel(new BorderLayout());
+        roleCard.setBackground(Color.WHITE);
+        roleCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UIPalette.BORDER),
+            new EmptyBorder(20, 20, 20, 20)));
+        roleTitle = new JLabel("PERFIS CADASTRADOS");
         roleTitle.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
-        roleTitle.setForeground(Color.GRAY);
+        roleTitle.setForeground(UIPalette.TEXT_SECONDARY);
         roleCard.add(roleTitle, BorderLayout.NORTH);
 
         Map<String, Integer> roleCounts = new LinkedHashMap<>();
@@ -280,28 +354,29 @@ public class UsersPanel extends JPanel {
         }
         roleText.append("</html>");
 
-        JLabel roleContent = new JLabel(roleText.toString());
+        roleContent = new JLabel(roleText.toString());
         roleContent.setFont(UIPalette.FONT_BODY.deriveFont(12f));
-        roleContent.setForeground(Color.WHITE);
+        roleContent.setForeground(UIPalette.ON_BACKGROUND);
         roleCard.add(roleContent, BorderLayout.CENTER);
 
         // Current session card
-        JPanel sessionCard = new JPanel(new BorderLayout());
+        sessionCard = new JPanel(new BorderLayout());
         sessionCard.setBackground(Color.WHITE);
         sessionCard.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(UIPalette.BORDER),
             new EmptyBorder(20, 20, 20, 20)));
-        JLabel sessionTitle = new JLabel("SESSÃO ATUAL");
+        sessionTitle = new JLabel("SESSÃO ATUAL");
         sessionTitle.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
-        sessionTitle.setForeground(UIPalette.INFO);
+        sessionTitle.setForeground(UIPalette.TEXT_SECONDARY);
         sessionCard.add(sessionTitle, BorderLayout.NORTH);
 
         User activeUser = SessionManager.getInstance().getCurrentUser();
         String sessionText = (activeUser != null)
             ? "<html>• Usuário: " + activeUser.getName() + "<br>• Perfil: " + activeUser.getRole() + "</html>"
             : "<html>• Nenhuma sessão ativa</html>";
-        JLabel sessionContent = new JLabel(sessionText);
+        sessionContent = new JLabel(sessionText);
         sessionContent.setFont(UIPalette.FONT_BODY.deriveFont(12f));
+        sessionContent.setForeground(UIPalette.ON_BACKGROUND);
         sessionCard.add(sessionContent, BorderLayout.CENTER);
 
         footer.add(roleCard);
@@ -334,11 +409,17 @@ public class UsersPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(iconBg);
-                g2.fillOval(0, 0, getWidth(), getHeight());
+                Color lBg = (Color) getClientProperty("iconBg");
+                Color bg = com.formdev.flatlaf.FlatLaf.isLafDark() ? getDarkIconBg(lBg) : lBg;
+                g2.setColor(bg);
+                int size = Math.min(getWidth(), getHeight());
+                int x = (getWidth() - size) / 2;
+                int y = (getHeight() - size) / 2;
+                g2.fillOval(x, y, size, size);
                 g2.dispose();
             }
         };
+        iconCircle.putClientProperty("iconBg", iconBg);
         iconCircle.setPreferredSize(new Dimension(42, 42));
         iconCircle.setOpaque(false);
         JLabel iconLbl = new JLabel(iconText);
@@ -391,5 +472,90 @@ public class UsersPanel extends JPanel {
             adminsValueLabel.setText(String.format("%02d", admins));
         if (sessionValueLabel != null)
             sessionValueLabel.setText(String.format("%02d", session));
+    }
+
+    private JPanel addMetricCard(String title, String value, String sub, String iconText, Color iconBg) {
+        JPanel card = createMetricCard(title, value, sub, iconText, iconBg);
+        metricCards.add(card);
+        return card;
+    }
+
+    private Color getDarkIconBg(Color lightBg) {
+        if (lightBg.equals(new Color(0xEFF6FF))) return new Color(0x1E3A8A); // blue
+        if (lightBg.equals(new Color(0xECFDF5))) return new Color(0x064E3B); // green
+        if (lightBg.equals(new Color(0xFEF2F2))) return new Color(0x7F1D1D); // red
+        if (lightBg.equals(new Color(0xFFFBEB))) return new Color(0x78350F); // amber
+        return lightBg;
+    }
+
+    private void updateMetricCardStyle(JPanel card) {
+        card.setBackground(UIPalette.SURFACE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UIPalette.BORDER),
+                new EmptyBorder(15, 20, 15, 20)));
+        for (Component c : card.getComponents()) {
+            if (c instanceof JPanel) {
+                JPanel p = (JPanel) c;
+                if (p.getLayout() instanceof GridBagLayout) { // iconCircle
+                    p.repaint();
+                } else if (p.getLayout() instanceof BoxLayout) { // textContainer
+                    for (Component tc : p.getComponents()) {
+                        if (tc instanceof JLabel) {
+                            JLabel lbl = (JLabel) tc;
+                            if (lbl.getFont().getSize() == 10) { // title / sub labels
+                                lbl.setForeground(UIPalette.TEXT_SECONDARY);
+                            } else if (lbl.getFont().getSize() == 26) { // value label
+                                lbl.setForeground(UIPalette.ON_BACKGROUND);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void updateThemeColors() {
+        setBackground(UIPalette.BACKGROUND);
+        if (title != null) title.setForeground(UIPalette.ON_BACKGROUND);
+        if (sub != null) sub.setForeground(UIPalette.TEXT_SECONDARY);
+
+        // Atualiza metric cards
+        for (JPanel card : metricCards) {
+            updateMetricCardStyle(card);
+        }
+
+        // Atualiza tabela
+        if (table != null) {
+            table.setBackground(UIPalette.SURFACE);
+            table.setForeground(UIPalette.ON_BACKGROUND);
+            table.getTableHeader().setBackground(UIPalette.SURFACE);
+            table.getTableHeader().setForeground(UIPalette.ON_BACKGROUND);
+            table.setGridColor(UIPalette.BORDER);
+        }
+        if (scrollPane != null) {
+            scrollPane.setBorder(BorderFactory.createLineBorder(UIPalette.BORDER));
+            scrollPane.getViewport().setBackground(UIPalette.SURFACE);
+        }
+
+        // Atualiza rodapé cards
+        if (roleCard != null) {
+            roleCard.setBackground(UIPalette.SURFACE);
+            roleCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UIPalette.BORDER),
+                new EmptyBorder(20, 20, 20, 20)));
+        }
+        if (roleTitle != null) roleTitle.setForeground(UIPalette.TEXT_SECONDARY);
+        if (roleContent != null) roleContent.setForeground(UIPalette.ON_BACKGROUND);
+
+        if (sessionCard != null) {
+            sessionCard.setBackground(UIPalette.SURFACE);
+            sessionCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UIPalette.BORDER),
+                new EmptyBorder(20, 20, 20, 20)));
+        }
+        if (sessionTitle != null) sessionTitle.setForeground(UIPalette.TEXT_SECONDARY);
+        if (sessionContent != null) sessionContent.setForeground(UIPalette.ON_BACKGROUND);
+
+        repaint();
     }
 }

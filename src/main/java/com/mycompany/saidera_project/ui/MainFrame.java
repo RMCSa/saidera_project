@@ -13,6 +13,7 @@ public class MainFrame extends JFrame {
     private final JPanel contentArea = new JPanel(cardLayout);
     private JPanel activeSidebarItem = null;
     private JPanel navContainer;
+    private SearchHeader topHeader;
 
     public void showPanel(String cardName) {
         cardLayout.show(contentArea, cardName);
@@ -48,7 +49,7 @@ public class MainFrame extends JFrame {
     }
 
     public MainFrame() {
-        setTitle("Saíderas Desktop - Gestão de Choperia");
+        setTitle("Saidera Desktop - Gestão de Choperia");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1280, 800);
         setLocationRelativeTo(null);
@@ -67,7 +68,7 @@ public class MainFrame extends JFrame {
         // Sidebar Header
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 25));
         header.setOpaque(false);
-        
+
         // Brand logo icon square box
         JPanel logoBox = new JPanel(new GridBagLayout()) {
             @Override
@@ -85,10 +86,10 @@ public class MainFrame extends JFrame {
         logoEmoji.setFont(logoEmoji.getFont().deriveFont(18f));
         logoBox.add(logoEmoji);
 
-        JLabel logoBrand = new JLabel("Saíderas");
+        JLabel logoBrand = new JLabel("Saidera");
         logoBrand.setFont(UIPalette.FONT_TITLE.deriveFont(22f));
         logoBrand.setForeground(Color.WHITE);
-        
+
         header.add(logoBox);
         header.add(logoBrand);
         navContainer.add(header);
@@ -107,13 +108,13 @@ public class MainFrame extends JFrame {
         sidebar.add(navContainer, BorderLayout.NORTH);
 
         // Sidebar Footer (Capacity Bar)
-        JPanel sidebarFooter = new JPanel(new BorderLayout(0, 10));
+        JPanel sidebarFooter = new JPanel(new BorderLayout(0, 12));
         sidebarFooter.setOpaque(false);
-        sidebarFooter.setBorder(new EmptyBorder(0, 20, 40, 20));
+        sidebarFooter.setBorder(new EmptyBorder(15, 20, 40, 20));
 
         JLabel capLabel = new JLabel("CAPACIDADE TOTAL");
-        capLabel.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
-        capLabel.setForeground(Color.GRAY);
+        capLabel.setFont(UIPalette.FONT_LABEL.deriveFont(11f));
+        capLabel.setForeground(new Color(0x94A3B8));
         sidebarFooter.add(capLabel, BorderLayout.NORTH);
 
         JProgressBar progress = new JProgressBar(0, 100);
@@ -123,11 +124,12 @@ public class MainFrame extends JFrame {
         progress.setValue(stablePercent);
         progress.setForeground(UIPalette.AMBER);
         progress.setStringPainted(false);
-        progress.setPreferredSize(new Dimension(0, 8));
+        progress.setPreferredSize(new Dimension(0, 10));
+        progress.putClientProperty("FlatLaf.style", "foreground: #FFBF00; background: #2C4259;");
         sidebarFooter.add(progress, BorderLayout.CENTER);
 
         JLabel capSub = new JLabel(String.format("Estoque estável: %02d%%", stablePercent));
-        capSub.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
+        capSub.setFont(UIPalette.FONT_LABEL.deriveFont(11f));
         capSub.setForeground(Color.LIGHT_GRAY);
         sidebarFooter.add(capSub, BorderLayout.SOUTH);
 
@@ -138,7 +140,7 @@ public class MainFrame extends JFrame {
         // RIGHT CONTAINER (Header + Content)
         JPanel rightContainer = new JPanel(new BorderLayout());
 
-        SearchHeader topHeader = new SearchHeader();
+        topHeader = new SearchHeader();
         rightContainer.add(topHeader, BorderLayout.NORTH);
 
         contentArea.setBackground(UIPalette.BACKGROUND);
@@ -249,5 +251,26 @@ public class MainFrame extends JFrame {
         }
 
         container.add(item);
+    }
+
+    public void updateThemeColors() {
+        if (topHeader != null) {
+            topHeader.updateThemeColors();
+        }
+        if (contentArea != null) {
+            contentArea.setBackground(UIPalette.BACKGROUND);
+            for (Component c : contentArea.getComponents()) {
+                if (c instanceof DashboardPanel) {
+                    ((DashboardPanel) c).updateThemeColors();
+                } else if (c instanceof MenuPanel) {
+                    ((MenuPanel) c).updateThemeColors();
+                } else if (c instanceof UsersPanel) {
+                    ((UsersPanel) c).updateThemeColors();
+                } else if (c instanceof InventoryPanel) {
+                    ((InventoryPanel) c).updateThemeColors();
+                }
+            }
+        }
+        repaint();
     }
 }

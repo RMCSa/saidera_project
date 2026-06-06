@@ -14,10 +14,19 @@ public class UserForm extends BaseDialog {
     private JPasswordField passField;
     private JComboBox<String> roleCombo;
     private Runnable onSaveCallback;
+    /** Usuário sendo editado; null em modo criação. */
+    private User editingUser;
 
+    /** Construtor para criação de novo usuário. */
     public UserForm(Frame owner, Runnable onSaveCallback) {
-        super(owner, "Novo Usuário", 500, 600);
+        this(owner, onSaveCallback, null);
+    }
+
+    /** Construtor para edição de usuário existente. */
+    public UserForm(Frame owner, Runnable onSaveCallback, User existing) {
+        super(owner, existing == null ? "Novo Usuário" : "Editar Usuário", 500, 600);
         this.onSaveCallback = onSaveCallback;
+        this.editingUser = existing;
 
         contentPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -27,27 +36,31 @@ public class UserForm extends BaseDialog {
 
         nameField = new JTextField();
         nameField.setPreferredSize(new Dimension(0, 40));
+        if (existing != null) nameField.setText(existing.getName());
         addField("NOME COMPLETO", nameField, gbc, 0);
 
         emailField = new JTextField();
         emailField.setPreferredSize(new Dimension(0, 40));
+        if (existing != null) emailField.setText(existing.getEmail());
         addField("E-MAIL PROFISSIONAL", emailField, gbc, 1);
 
-        passField = new JPasswordField("muda123"); // Default password
+        passField = new JPasswordField();
         passField.setPreferredSize(new Dimension(0, 40));
-        passField.setText("");
-        passField.setToolTipText("Se vazio, será usada a senha temporária padrão: muda123 (demo).");
-        addField("SENHA TEMPORÁRIA", passField, gbc, 2);
+        passField.setToolTipText(existing == null
+            ? "Se vazio, será usada a senha temporária padrão: muda123 (demo)."
+            : "Deixe em branco para manter a senha atual.");
+        addField(existing == null ? "SENHA TEMPORÁRIA" : "NOVA SENHA (opcional)", passField, gbc, 2);
 
         roleCombo = new JComboBox<>(new String[] { "Admin", "Gerente", "Caixa", "Garçom" });
         roleCombo.setPreferredSize(new Dimension(0, 40));
+        if (existing != null) roleCombo.setSelectedItem(existing.getRole());
         addField("CARGO / PERFIL", roleCombo, gbc, 3);
 
         // Buttons
         JButton cancelBtn = createSecondaryButton("Cancelar");
         cancelBtn.addActionListener(e -> dispose());
 
-        JButton saveBtn = createPrimaryButton("Salvar Usuário");
+        JButton saveBtn = createPrimaryButton(editingUser == null ? "Salvar Usuário" : "Atualizar Usuário");
         saveBtn.addActionListener(this::saveUser);
 
         footerPanel.add(cancelBtn);
@@ -70,15 +83,21 @@ public class UserForm extends BaseDialog {
             return;
         }
 
-        if (password.isEmpty()) {
-            password = "muda123";
+        if (editingUser != null) {
+            // Modo edição: senha vazia = mantém a atual (updateUser trata isso)
+            User updated = new User(editingUser.getId(), name, email, role,
+                    editingUser.getRegistrationDate(), password);
+            DataRepository.getInstance().updateUser(updated);
+        } else {
+            // Modo criação
+            if (password.isEmpty()) {
+                password = "muda123";
+            }
+            String id = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
+            String dateStr = new SimpleDateFormat("dd MMM, yyyy").format(new Date());
+            User u = new User(id, name, email, role, dateStr, password);
+            DataRepository.getInstance().addUser(u);
         }
-
-        String id = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
-        String dateStr = new SimpleDateFormat("dd MMM, yyyy").format(new Date());
-
-        User u = new User(id, name, email, role, dateStr, password);
-        DataRepository.getInstance().addUser(u);
 
         if (onSaveCallback != null)
             onSaveCallback.run();

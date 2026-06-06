@@ -15,10 +15,19 @@ public class ProductForm extends BaseDialog {
     private JComboBox<Object> stockLinkCombo;
     private JCheckBox activeBox;
     private Runnable onSaveCallback;
+    /** Produto sendo editado; null em modo criação. */
+    private Product editingProduct;
 
+    /** Construtor para criação de novo produto. */
     public ProductForm(Frame owner, Runnable onSaveCallback) {
-        super(owner, "Novo Produto", 500, 600);
+        this(owner, onSaveCallback, null);
+    }
+
+    /** Construtor para edição de produto existente. */
+    public ProductForm(Frame owner, Runnable onSaveCallback, Product existing) {
+        super(owner, existing == null ? "Novo Produto" : "Editar Produto", 500, 600);
         this.onSaveCallback = onSaveCallback;
+        this.editingProduct = existing;
 
         contentPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -28,6 +37,7 @@ public class ProductForm extends BaseDialog {
 
         nameField = new JTextField();
         nameField.setPreferredSize(new Dimension(0, 40));
+        if (existing != null) nameField.setText(existing.getName());
         addField("NOME DO PRODUTO", nameField, gbc, 0);
 
         List<String> categories = DataRepository.getInstance().getProductCategories();
@@ -35,6 +45,7 @@ public class ProductForm extends BaseDialog {
         categoryCombo = new JComboBox<>(categoryModel);
         categoryCombo.setEditable(true);
         categoryCombo.setPreferredSize(new Dimension(0, 40));
+        if (existing != null) categoryCombo.setSelectedItem(existing.getCategory());
 
         JButton addCategoryBtn = new JButton("+ Nova Categoria");
         addCategoryBtn.setFont(UIPalette.FONT_LABEL.deriveFont(11f));
@@ -48,7 +59,8 @@ public class ProductForm extends BaseDialog {
 
         addField("CATEGORIA", categoryPanel, gbc, 1);
 
-        priceSpinner = new JSpinner(new SpinnerNumberModel(0.00, 0.00, 10000.00, 0.50));
+        priceSpinner = new JSpinner(new SpinnerNumberModel(
+                existing != null ? existing.getPrice() : 0.00, 0.00, 10000.00, 0.50));
         priceSpinner.setPreferredSize(new Dimension(0, 40));
         addField("PREÇO (R$)", priceSpinner, gbc, 2);
 
@@ -75,7 +87,7 @@ public class ProductForm extends BaseDialog {
         stockLinkCombo.setPreferredSize(new Dimension(0, 40));
         addField("VINCULAR AO ESTOQUE", stockLinkCombo, gbc, 3);
 
-        activeBox = new JCheckBox("Produto Ativo no Cardápio", true);
+        activeBox = new JCheckBox("Produto Ativo no Cardápio", existing == null || existing.isActive());
         activeBox.setFont(UIPalette.FONT_BODY);
         gbc.gridy = 7;
         contentPanel.add(activeBox, gbc);
@@ -84,7 +96,7 @@ public class ProductForm extends BaseDialog {
         JButton cancelBtn = createSecondaryButton("Cancelar");
         cancelBtn.addActionListener(e -> dispose());
 
-        JButton saveBtn = createPrimaryButton("Salvar Produto");
+        JButton saveBtn = createPrimaryButton(editingProduct == null ? "Salvar Produto" : "Atualizar Produto");
         saveBtn.addActionListener(this::saveProduct);
 
         footerPanel.add(cancelBtn);
@@ -103,16 +115,22 @@ public class ProductForm extends BaseDialog {
             return;
         }
 
-        String id = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
-
         String linkedStockId = null;
         Object selected = stockLinkCombo.getSelectedItem();
         if (selected instanceof com.mycompany.saidera_project.models.StockItem) {
             linkedStockId = ((com.mycompany.saidera_project.models.StockItem) selected).getId();
         }
 
-        Product p = new Product(id, name, category, price, active, linkedStockId);
-        DataRepository.getInstance().addProduct(p);
+        if (editingProduct != null) {
+            // Modo edição: atualiza o produto existente
+            Product updated = new Product(editingProduct.getId(), name, category, price, active, linkedStockId);
+            DataRepository.getInstance().updateProduct(updated);
+        } else {
+            // Modo criação: gera novo ID e insere
+            String id = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
+            Product p = new Product(id, name, category, price, active, linkedStockId);
+            DataRepository.getInstance().addProduct(p);
+        }
 
         if (onSaveCallback != null)
             onSaveCallback.run();

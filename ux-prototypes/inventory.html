@@ -1,386 +1,905 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<title>Saíderas — Controle de Estoque</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --amber: #FFBF00; --amber-dark: #795900; --amber-light: #FFF8DC; --amber-glow: rgba(255,191,0,0.15);
-    --slate: #203243; --slate-border: rgba(255,255,255,0.08);
-    --bg: #F0F4FF; --surface: #FFFFFF; --surface-2: #F8FAFC; --border: #E2E8F0;
-    --text: #0F172A; --text-muted: #64748B;
-    --error: #DC2626; --error-bg: #FEF2F2; --error-border: #FECACA;
-    --success: #16A34A; --success-bg: #F0FDF4;
-    --warning: #D97706; --warning-bg: #FFFBEB;
-    --info: #2563EB; --info-bg: #EFF6FF;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
-    --radius: 12px; --radius-sm: 8px; --radius-xs: 6px;
-    --sidebar-w: 248px; --header-h: 64px;
-  }
-  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+  <meta charset="UTF-8">
+  <title>Saidera — Controle de Estoque</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  /* SIDEBAR (same as other pages) */
-  .sidebar { width: var(--sidebar-w); background: var(--slate); display: flex; flex-direction: column; flex-shrink: 0; height: 100vh; }
-  .sidebar-brand { padding: 24px 20px 20px; border-bottom: 1px solid var(--slate-border); }
-  .brand-row { display: flex; align-items: center; gap: 10px; }
-  .brand-icon { width: 40px; height: 40px; background: var(--amber); border-radius: var(--radius-xs); display: flex; align-items: center; justify-content: center; font-size: 20px; }
-  .brand-name { font-size: 16px; font-weight: 800; color: var(--amber); }
-  .brand-tag { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 500; text-transform: uppercase; }
-  .sidebar-nav { flex: 1; padding: 12px 0; }
-  .nav-section-label { padding: 8px 20px 4px; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-top: 8px; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; margin: 1px 8px; border-radius: var(--radius-xs); cursor: pointer; transition: all 0.15s; text-decoration: none; }
-  .nav-item:hover { background: rgba(255,255,255,0.06); }
-  .nav-item.active { background: rgba(255,191,0,0.12); border: 1px solid rgba(255,191,0,0.2); }
-  .nav-item.active .nav-icon, .nav-item.active .nav-label { color: var(--amber); font-weight: 600; }
-  .nav-icon { font-size: 17px; width: 20px; text-align: center; color: rgba(255,255,255,0.45); }
-  .nav-label { font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.6); flex: 1; }
-  .nav-badge { background: var(--error); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 100px; }
-  .sidebar-footer { padding: 16px 20px 20px; border-top: 1px solid var(--slate-border); }
-  .capacity-label { font-size: 10px; font-weight: 600; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 8px; display: flex; justify-content: space-between; }
-  .capacity-pct { color: var(--amber); }
-  .progress-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 100px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--amber), #FFD740); border-radius: 100px; }
+    :root {
+      --amber: #FFBF00;
+      --amber-dark: #795900;
+      --amber-light: #FFF8DC;
+      --amber-glow: rgba(255, 191, 0, 0.15);
+      --slate: #203243;
+      --slate-border: rgba(255, 255, 255, 0.08);
+      --bg: #F0F4FF;
+      --surface: #FFFFFF;
+      --surface-2: #F8FAFC;
+      --border: #E2E8F0;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --error: #DC2626;
+      --error-bg: #FEF2F2;
+      --error-border: #FECACA;
+      --success: #16A34A;
+      --success-bg: #F0FDF4;
+      --warning: #D97706;
+      --warning-bg: #FFFBEB;
+      --info: #2563EB;
+      --info-bg: #EFF6FF;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --sidebar-w: 248px;
+      --header-h: 64px;
+    }
 
-  /* MAIN */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .topbar { height: var(--header-h); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; flex-shrink: 0; box-shadow: var(--shadow-sm); }
-  .page-title { font-size: 16px; font-weight: 700; }
-  .page-breadcrumb { font-size: 12px; color: var(--text-muted); }
-  .breadcrumb-sep { margin: 0 6px; color: var(--border); }
-  .topbar-right { display: flex; align-items: center; gap: 16px; }
-  .user-pill { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 12px 4px 4px; border-radius: 100px; border: 1px solid var(--border); }
-  .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--amber), #FF8C00); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
-  .user-name { font-size: 12px; font-weight: 600; }
-  .user-role { font-size: 10px; color: var(--text-muted); }
-  .logout-btn { font-size: 12px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: var(--radius-xs); transition: all 0.15s; }
-  .logout-btn:hover { color: var(--error); }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-  /* CONTENT */
-  .content { flex: 1; overflow-y: auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
+    /* SIDEBAR (same as other pages) */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--slate);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      height: 100vh;
+    }
 
-  /* PAGE HEADER */
-  .page-header { display: flex; align-items: flex-start; justify-content: space-between; }
-  .ph-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-  .ph-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-  .btn-group { display: flex; gap: 8px; }
-  .btn-secondary { background: var(--surface); color: var(--text); border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; padding: 9px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
-  .btn-secondary:hover { background: var(--bg); border-color: #CBD5E1; }
-  .btn-primary { background: var(--amber); color: var(--amber-dark); border: none; border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 18px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
-  .btn-primary:hover { filter: brightness(0.93); }
+    .sidebar-brand {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--slate-border);
+    }
 
-  /* ALERT + SUMMARY CARDS */
-  .metrics-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-  .alert-card {
-    background: linear-gradient(135deg, #FEF2F2, #FFF5F5);
-    border: 1px solid var(--error-border);
-    border-left: 4px solid var(--error);
-    border-radius: var(--radius);
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--amber);
+      border-radius: var(--radius-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
 
-  .alert-icon-wrap {
-    width: 48px;
-    height: 48px;
-    background: #FEE2E2;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-  }
+    .brand-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--amber);
+    }
 
-  .alert-num { font-size: 32px; font-weight: 800; color: var(--error); letter-spacing: -1px; line-height: 1; }
-  .alert-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--error); opacity: 0.7; margin-bottom: 2px; }
-  .alert-sub { font-size: 11px; color: #B91C1C; margin-top: 2px; }
+    .brand-tag {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.35);
+      font-weight: 500;
+      text-transform: uppercase;
+    }
 
-  .summary-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    box-shadow: var(--shadow-sm);
-  }
+    .sidebar-nav {
+      flex: 1;
+      padding: 12px 0;
+    }
 
-  .summary-icon-wrap { width: 48px; height: 48px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-  .summary-num { font-size: 32px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
-  .summary-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
-  .summary-sub { font-size: 11px; color: #94A3B8; margin-top: 2px; }
+    .nav-section-label {
+      padding: 8px 20px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.2);
+      margin-top: 8px;
+    }
 
-  /* TABLE */
-  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
-  .table-toolbar { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .table-tool-title { font-size: 14px; font-weight: 700; }
-  .table-tool-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-  .sort-hint { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      margin: 1px 8px;
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
 
-  table { width: 100%; border-collapse: collapse; }
-  thead tr { background: var(--surface-2); }
-  th { padding: 10px 16px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-  td { padding: 0 16px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; height: 70px; font-size: 13px; }
-  tr:last-child td { border-bottom: none; }
-  tbody tr.critical-row td { background: #FFF8F8; }
-  tbody tr.critical-row:hover td { background: #FEF0F0; }
-  tbody tr:not(.critical-row):hover td { background: #FAFBFF; }
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
 
-  /* Cells */
-  .prod-name { font-weight: 600; color: var(--text); }
-  .prod-unit { font-size: 10px; color: #94A3B8; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .nav-item.active {
+      background: rgba(255, 191, 0, 0.12);
+      border: 1px solid rgba(255, 191, 0, 0.2);
+    }
 
-  /* Stock level bar cell */
-  .level-cell { min-width: 180px; }
-  .level-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
-  .level-current { font-weight: 700; }
-  .level-min { color: var(--text-muted); }
-  .level-bar { height: 8px; background: #F1F5F9; border-radius: 100px; overflow: hidden; position: relative; }
-  .level-fill { height: 100%; border-radius: 100px; transition: width 0.6s ease; }
-  .level-fill.critical { background: linear-gradient(90deg, var(--error), #EF4444); }
-  .level-fill.warning { background: linear-gradient(90deg, var(--warning), #F59E0B); }
-  .level-fill.ok { background: linear-gradient(90deg, var(--success), #22C55E); }
+    .nav-item.active .nav-icon,
+    .nav-item.active .nav-label {
+      color: var(--amber);
+      font-weight: 600;
+    }
 
-  /* Min threshold marker */
-  .level-bar-wrap { position: relative; }
-  .min-marker { position: absolute; top: 0; height: 100%; width: 2px; background: rgba(0,0,0,0.15); z-index: 1; }
+    .nav-icon {
+      font-size: 17px;
+      width: 20px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.45);
+    }
 
-  /* Status badges */
-  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 600; }
-  .badge.critical { background: #FEE2E2; color: var(--error); }
-  .badge.stable { background: #DCFCE7; color: var(--success); }
-  .badge.warning { background: #FEF3C7; color: var(--warning); }
+    .nav-label {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.6);
+      flex: 1;
+    }
 
-  /* Quick action inline */
-  .quick-action { display: flex; gap: 6px; }
-  .qa-btn { height: 28px; padding: 0 10px; border-radius: var(--radius-xs); border: 1px solid var(--border); background: var(--surface); font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 4px; }
-  .qa-btn.in { color: var(--success); border-color: #BBF7D0; }
-  .qa-btn.in:hover { background: var(--success-bg); }
-  .qa-btn.out { color: var(--text-muted); }
-  .qa-btn.out:hover { background: var(--bg); }
-</style>
+    .nav-badge {
+      background: var(--error);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 100px;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px 20px;
+      border-top: 1px solid var(--slate-border);
+    }
+
+    .capacity-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.3);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .capacity-pct {
+      color: var(--amber);
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--amber), #FFD740);
+      border-radius: 100px;
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: var(--header-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .page-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .page-breadcrumb {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .breadcrumb-sep {
+      margin: 0 6px;
+      color: var(--border);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 4px 12px 4px 4px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--amber), #FF8C00);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .user-name {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .user-role {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .logout-btn {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--radius-xs);
+      transition: all 0.15s;
+    }
+
+    .logout-btn:hover {
+      color: var(--error);
+    }
+
+    /* CONTENT */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* PAGE HEADER */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .ph-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .ph-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg);
+      border-color: #CBD5E1;
+    }
+
+    .btn-primary {
+      background: var(--amber);
+      color: var(--amber-dark);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(0.93);
+    }
+
+    /* ALERT + SUMMARY CARDS */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .alert-card {
+      background: linear-gradient(135deg, #FEF2F2, #FFF5F5);
+      border: 1px solid var(--error-border);
+      border-left: 4px solid var(--error);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .alert-icon-wrap {
+      width: 48px;
+      height: 48px;
+      background: #FEE2E2;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .alert-num {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--error);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .alert-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--error);
+      opacity: 0.7;
+      margin-bottom: 2px;
+    }
+
+    .alert-sub {
+      font-size: 11px;
+      color: #B91C1C;
+      margin-top: 2px;
+    }
+
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .summary-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .summary-num {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .summary-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .summary-sub {
+      font-size: 11px;
+      color: #94A3B8;
+      margin-top: 2px;
+    }
+
+    /* TABLE */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .table-toolbar {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .table-tool-title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .table-tool-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .sort-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: var(--surface-2);
+    }
+
+    th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0 16px;
+      border-bottom: 1px solid #F1F5F9;
+      vertical-align: middle;
+      height: 70px;
+      font-size: 13px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr.critical-row td {
+      background: #FFF8F8;
+    }
+
+    tbody tr.critical-row:hover td {
+      background: #FEF0F0;
+    }
+
+    tbody tr:not(.critical-row):hover td {
+      background: #FAFBFF;
+    }
+
+    /* Cells */
+    .prod-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .prod-unit {
+      font-size: 10px;
+      color: #94A3B8;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Stock level bar cell */
+    .level-cell {
+      min-width: 180px;
+    }
+
+    .level-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 5px;
+    }
+
+    .level-current {
+      font-weight: 700;
+    }
+
+    .level-min {
+      color: var(--text-muted);
+    }
+
+    .level-bar {
+      height: 8px;
+      background: #F1F5F9;
+      border-radius: 100px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .level-fill {
+      height: 100%;
+      border-radius: 100px;
+      transition: width 0.6s ease;
+    }
+
+    .level-fill.critical {
+      background: linear-gradient(90deg, var(--error), #EF4444);
+    }
+
+    .level-fill.warning {
+      background: linear-gradient(90deg, var(--warning), #F59E0B);
+    }
+
+    .level-fill.ok {
+      background: linear-gradient(90deg, var(--success), #22C55E);
+    }
+
+    /* Min threshold marker */
+    .level-bar-wrap {
+      position: relative;
+    }
+
+    .min-marker {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 2px;
+      background: rgba(0, 0, 0, 0.15);
+      z-index: 1;
+    }
+
+    /* Status badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge.critical {
+      background: #FEE2E2;
+      color: var(--error);
+    }
+
+    .badge.stable {
+      background: #DCFCE7;
+      color: var(--success);
+    }
+
+    .badge.warning {
+      background: #FEF3C7;
+      color: var(--warning);
+    }
+
+    /* Quick action inline */
+    .quick-action {
+      display: flex;
+      gap: 6px;
+    }
+
+    .qa-btn {
+      height: 28px;
+      padding: 0 10px;
+      border-radius: var(--radius-xs);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .qa-btn.in {
+      color: var(--success);
+      border-color: #BBF7D0;
+    }
+
+    .qa-btn.in:hover {
+      background: var(--success-bg);
+    }
+
+    .qa-btn.out {
+      color: var(--text-muted);
+    }
+
+    .qa-btn.out:hover {
+      background: var(--bg);
+    }
+  </style>
 </head>
+
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div class="brand-row">
-      <div class="brand-icon">🍺</div>
-      <div style="flex:1;">
-        <div class="brand-name">Saíderas</div>
-        <div class="brand-tag">Back-Office v2</div>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-row">
+        <div class="brand-icon">🍺</div>
+        <div style="flex:1;">
+          <div class="brand-name">Saidera</div>
+          <div class="brand-tag">Back-Office v2</div>
+        </div>
       </div>
     </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span><span
+          class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="menu.html"><span class="nav-icon">🍴</span><span class="nav-label">Cardápio</span></a>
+      <a class="nav-item active" href="inventory.html"><span class="nav-icon">📦</span><span
+          class="nav-label">Estoque</span><span class="nav-badge">2</span></a>
+      <div class="nav-section-label">Equipe</div>
+      <a class="nav-item" href="users.html"><span class="nav-icon">👥</span><span class="nav-label">Usuários</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="capacity-label"><span>Estoque Estável</span><span class="capacity-pct">50%</span></div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:50%"></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div>
+          <div class="page-title">Estoque</div>
+          <div class="page-breadcrumb">Saidera <span class="breadcrumb-sep">›</span> Controle de Estoque</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="user-pill">
+          <div class="avatar">RM</div>
+          <div>
+            <div class="user-name">Rafael Moreira</div>
+            <div class="user-role">Admin</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="window.location.href='login.html'">← Sair</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <div>
+          <div class="ph-title">Controle de Estoque 📦</div>
+          <div class="ph-sub">Visão centralizada de insumos e barris</div>
+        </div>
+        <div class="btn-group">
+          <button class="btn-secondary" onclick="alert('Registrar saída de insumo')">📤 Registrar Saída</button>
+          <button class="btn-primary" onclick="alert('Registrar entrada de insumo')">📥 Registrar Entrada</button>
+        </div>
+      </div>
+
+      <!-- METRIC CARDS -->
+      <div class="metrics-row">
+        <div class="alert-card">
+          <div class="alert-icon-wrap">🚨</div>
+          <div>
+            <div class="alert-label">Itens Críticos</div>
+            <div class="alert-num">01</div>
+            <div class="alert-sub">Abaixo do nível mínimo</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon-wrap" style="background:#DCFCE7;">✅</div>
+          <div>
+            <div class="summary-label">Itens Estáveis</div>
+            <div class="summary-num" style="color:var(--success);">03</div>
+            <div class="summary-sub">Dentro do nível seguro</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon-wrap" style="background:var(--info-bg);">📦</div>
+          <div>
+            <div class="summary-label">Total de Insumos</div>
+            <div class="summary-num" style="color:var(--info);">04</div>
+            <div class="summary-sub">Itens cadastrados</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div>
+            <div class="table-tool-title">Inventário Completo</div>
+            <div class="table-tool-sub">Críticos exibidos primeiro · Atualizado ao vivo</div>
+          </div>
+          <div class="sort-hint">🔄 Ordenar por: <strong>Status</strong></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Insumo</th>
+              <th>Unidade</th>
+              <th style="width:220px;">Nível de Estoque</th>
+              <th>Status</th>
+              <th>Ações Rápidas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- CRITICAL FIRST -->
+            <tr class="critical-row">
+              <td>
+                <div class="prod-name">🔴 IPA Imperial Sunset</div>
+                <div class="prod-unit">Chopp · ID: S01</div>
+              </td>
+              <td style="font-weight:600;">Litros (L)</td>
+              <td class="level-cell">
+                <div class="level-header">
+                  <span class="level-current" style="color:var(--error);">2 L atual</span>
+                  <span class="level-min">mín. 5 L</span>
+                </div>
+                <div class="level-bar-wrap">
+                  <div class="level-bar">
+                    <div class="level-fill critical" style="width:40%"></div>
+                  </div>
+                  <div class="min-marker" style="left:100%"></div>
+                </div>
+              </td>
+              <td><span class="badge critical">🔴 Crítico</span></td>
+              <td>
+                <div class="quick-action">
+                  <button class="qa-btn in" onclick="alert('Registrar entrada para IPA Imperial Sunset')">📥
+                    +Entrada</button>
+                  <button class="qa-btn out" onclick="alert('Registrar saída para IPA Imperial Sunset')">📤
+                    Saída</button>
+                </div>
+              </td>
+            </tr>
+            <!-- STABLE ITEMS -->
+            <tr>
+              <td>
+                <div class="prod-name">Batata Rústica Alecrim</div>
+                <div class="prod-unit">Petisco · ID: S02</div>
+              </td>
+              <td style="font-weight:600;">Unid. (UN)</td>
+              <td class="level-cell">
+                <div class="level-header">
+                  <span class="level-current" style="color:var(--text-muted);">0 UN atual</span>
+                  <span class="level-min">mín. 0</span>
+                </div>
+                <div class="level-bar-wrap">
+                  <div class="level-bar">
+                    <div class="level-fill ok" style="width:0%"></div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge stable">🟢 Estável</span></td>
+              <td>
+                <div class="quick-action">
+                  <button class="qa-btn in" onclick="alert('Registrar entrada')">📥 +Entrada</button>
+                  <button class="qa-btn out">📤 Saída</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="prod-name">Gin Tônica Verão</div>
+                <div class="prod-unit">Drink · ID: S03</div>
+              </td>
+              <td style="font-weight:600;">Unid. (UN)</td>
+              <td class="level-cell">
+                <div class="level-header">
+                  <span class="level-current" style="color:var(--success);">8 UN atual</span>
+                  <span class="level-min">mín. 4</span>
+                </div>
+                <div class="level-bar-wrap">
+                  <div class="level-bar">
+                    <div class="level-fill ok" style="width:100%"></div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge stable">🟢 Estável</span></td>
+              <td>
+                <div class="quick-action">
+                  <button class="qa-btn in" onclick="alert('Registrar entrada')">📥 +Entrada</button>
+                  <button class="qa-btn out" onclick="alert('Registrar saída')">📤 Saída</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="prod-name">Burger Artesanal Bacon</div>
+                <div class="prod-unit">Hambúrguer · ID: S04</div>
+              </td>
+              <td style="font-weight:600;">Unid. (UN)</td>
+              <td class="level-cell">
+                <div class="level-header">
+                  <span class="level-current" style="color:var(--text-muted);">0 UN atual</span>
+                  <span class="level-min">mín. 0</span>
+                </div>
+                <div class="level-bar-wrap">
+                  <div class="level-bar">
+                    <div class="level-fill ok" style="width:0%"></div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge stable">🟢 Estável</span></td>
+              <td>
+                <div class="quick-action">
+                  <button class="qa-btn in" onclick="alert('Registrar entrada')">📥 +Entrada</button>
+                  <button class="qa-btn out">📤 Saída</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
   </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
-    <a class="nav-item" href="menu.html"><span class="nav-icon">🍴</span><span class="nav-label">Cardápio</span></a>
-    <a class="nav-item active" href="inventory.html"><span class="nav-icon">📦</span><span class="nav-label">Estoque</span><span class="nav-badge">2</span></a>
-    <div class="nav-section-label">Equipe</div>
-    <a class="nav-item" href="users.html"><span class="nav-icon">👥</span><span class="nav-label">Usuários</span></a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="capacity-label"><span>Estoque Estável</span><span class="capacity-pct">50%</span></div>
-    <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
-  </div>
-</aside>
-
-<div class="main">
-  <header class="topbar">
-    <div class="topbar-left">
-      <div>
-        <div class="page-title">Estoque</div>
-        <div class="page-breadcrumb">Saíderas <span class="breadcrumb-sep">›</span> Controle de Estoque</div>
-      </div>
-    </div>
-    <div class="topbar-right">
-      <div class="user-pill">
-        <div class="avatar">RM</div>
-        <div>
-          <div class="user-name">Rafael Moreira</div>
-          <div class="user-role">Admin</div>
-        </div>
-      </div>
-      <button class="logout-btn" onclick="window.location.href='login.html'">← Sair</button>
-    </div>
-  </header>
-
-  <main class="content">
-    <!-- PAGE HEADER -->
-    <div class="page-header">
-      <div>
-        <div class="ph-title">Controle de Estoque 📦</div>
-        <div class="ph-sub">Visão centralizada de insumos e barris</div>
-      </div>
-      <div class="btn-group">
-        <button class="btn-secondary" onclick="alert('Registrar saída de insumo')">📤 Registrar Saída</button>
-        <button class="btn-primary" onclick="alert('Registrar entrada de insumo')">📥 Registrar Entrada</button>
-      </div>
-    </div>
-
-    <!-- METRIC CARDS -->
-    <div class="metrics-row">
-      <div class="alert-card">
-        <div class="alert-icon-wrap">🚨</div>
-        <div>
-          <div class="alert-label">Itens Críticos</div>
-          <div class="alert-num">01</div>
-          <div class="alert-sub">Abaixo do nível mínimo</div>
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-icon-wrap" style="background:#DCFCE7;">✅</div>
-        <div>
-          <div class="summary-label">Itens Estáveis</div>
-          <div class="summary-num" style="color:var(--success);">03</div>
-          <div class="summary-sub">Dentro do nível seguro</div>
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-icon-wrap" style="background:var(--info-bg);">📦</div>
-        <div>
-          <div class="summary-label">Total de Insumos</div>
-          <div class="summary-num" style="color:var(--info);">04</div>
-          <div class="summary-sub">Itens cadastrados</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TABLE -->
-    <div class="table-card">
-      <div class="table-toolbar">
-        <div>
-          <div class="table-tool-title">Inventário Completo</div>
-          <div class="table-tool-sub">Críticos exibidos primeiro · Atualizado ao vivo</div>
-        </div>
-        <div class="sort-hint">🔄 Ordenar por: <strong>Status</strong></div>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Insumo</th>
-            <th>Unidade</th>
-            <th style="width:220px;">Nível de Estoque</th>
-            <th>Status</th>
-            <th>Ações Rápidas</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- CRITICAL FIRST -->
-          <tr class="critical-row">
-            <td>
-              <div class="prod-name">🔴 IPA Imperial Sunset</div>
-              <div class="prod-unit">Chopp · ID: S01</div>
-            </td>
-            <td style="font-weight:600;">Litros (L)</td>
-            <td class="level-cell">
-              <div class="level-header">
-                <span class="level-current" style="color:var(--error);">2 L atual</span>
-                <span class="level-min">mín. 5 L</span>
-              </div>
-              <div class="level-bar-wrap">
-                <div class="level-bar">
-                  <div class="level-fill critical" style="width:40%"></div>
-                </div>
-                <div class="min-marker" style="left:100%"></div>
-              </div>
-            </td>
-            <td><span class="badge critical">🔴 Crítico</span></td>
-            <td>
-              <div class="quick-action">
-                <button class="qa-btn in" onclick="alert('Registrar entrada para IPA Imperial Sunset')">📥 +Entrada</button>
-                <button class="qa-btn out" onclick="alert('Registrar saída para IPA Imperial Sunset')">📤 Saída</button>
-              </div>
-            </td>
-          </tr>
-          <!-- STABLE ITEMS -->
-          <tr>
-            <td>
-              <div class="prod-name">Batata Rústica Alecrim</div>
-              <div class="prod-unit">Petisco · ID: S02</div>
-            </td>
-            <td style="font-weight:600;">Unid. (UN)</td>
-            <td class="level-cell">
-              <div class="level-header">
-                <span class="level-current" style="color:var(--text-muted);">0 UN atual</span>
-                <span class="level-min">mín. 0</span>
-              </div>
-              <div class="level-bar-wrap">
-                <div class="level-bar">
-                  <div class="level-fill ok" style="width:0%"></div>
-                </div>
-              </div>
-            </td>
-            <td><span class="badge stable">🟢 Estável</span></td>
-            <td>
-              <div class="quick-action">
-                <button class="qa-btn in" onclick="alert('Registrar entrada')">📥 +Entrada</button>
-                <button class="qa-btn out">📤 Saída</button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div class="prod-name">Gin Tônica Verão</div>
-              <div class="prod-unit">Drink · ID: S03</div>
-            </td>
-            <td style="font-weight:600;">Unid. (UN)</td>
-            <td class="level-cell">
-              <div class="level-header">
-                <span class="level-current" style="color:var(--success);">8 UN atual</span>
-                <span class="level-min">mín. 4</span>
-              </div>
-              <div class="level-bar-wrap">
-                <div class="level-bar">
-                  <div class="level-fill ok" style="width:100%"></div>
-                </div>
-              </div>
-            </td>
-            <td><span class="badge stable">🟢 Estável</span></td>
-            <td>
-              <div class="quick-action">
-                <button class="qa-btn in" onclick="alert('Registrar entrada')">📥 +Entrada</button>
-                <button class="qa-btn out" onclick="alert('Registrar saída')">📤 Saída</button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div class="prod-name">Burger Artesanal Bacon</div>
-              <div class="prod-unit">Hambúrguer · ID: S04</div>
-            </td>
-            <td style="font-weight:600;">Unid. (UN)</td>
-            <td class="level-cell">
-              <div class="level-header">
-                <span class="level-current" style="color:var(--text-muted);">0 UN atual</span>
-                <span class="level-min">mín. 0</span>
-              </div>
-              <div class="level-bar-wrap">
-                <div class="level-bar">
-                  <div class="level-fill ok" style="width:0%"></div>
-                </div>
-              </div>
-            </td>
-            <td><span class="badge stable">🟢 Estável</span></td>
-            <td>
-              <div class="quick-action">
-                <button class="qa-btn in" onclick="alert('Registrar entrada')">📥 +Entrada</button>
-                <button class="qa-btn out">📤 Saída</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </main>
-</div>
 
 </body>
+
 </html>

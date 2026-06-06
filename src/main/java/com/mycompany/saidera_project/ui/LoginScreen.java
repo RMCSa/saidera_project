@@ -13,7 +13,7 @@ import java.awt.event.MouseEvent;
 public class LoginScreen extends JFrame {
 
     public LoginScreen() {
-        setTitle("Saíderas Desktop - Login");
+        setTitle("Saidera Desktop - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 700);
         setLocationRelativeTo(null);
@@ -41,7 +41,7 @@ public class LoginScreen extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.gridx = 0;
 
-        JLabel logoLabel = new JLabel("Saíderas Desktop");
+        JLabel logoLabel = new JLabel("Saidera Desktop");
         logoLabel.setFont(UIPalette.FONT_DISPLAY.deriveFont(32f));
         logoLabel.setForeground(UIPalette.AMBER);
         gbc.gridy = 0;

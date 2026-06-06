@@ -17,6 +17,10 @@ public class MenuPanel extends JPanel {
     private String selectedCategory;
     private String currentSearchTerm = "";
 
+    private JLabel title;
+    private JLabel sub;
+    private JScrollPane scrollPane;
+
     public MenuPanel() {
         setLayout(new BorderLayout());
         setBackground(UIPalette.BACKGROUND);
@@ -28,12 +32,12 @@ public class MenuPanel extends JPanel {
 
         JPanel titlePanel = new JPanel(new GridLayout(2, 1));
         titlePanel.setOpaque(false);
-        JLabel title = new JLabel("Gestão de Cardápio");
+        title = new JLabel("Gestão de Cardápio");
         title.setFont(UIPalette.FONT_DISPLAY.deriveFont(32f));
         title.setForeground(UIPalette.ON_BACKGROUND);
         titlePanel.add(title);
-
-        JLabel sub = new JLabel("Curadoria e controle de produtos do taproom.");
+ 
+        sub = new JLabel("Curadoria e controle de produtos do taproom.");
         sub.setFont(UIPalette.FONT_BODY);
         sub.setForeground(UIPalette.TEXT_SECONDARY);
         titlePanel.add(sub);
@@ -47,7 +51,10 @@ public class MenuPanel extends JPanel {
             Window owner = SwingUtilities.getWindowAncestor(this);
             new ProductForm((Frame) owner, () -> refreshTable(selectedCategory)).setVisible(true);
         });
-        header.add(addBtn, BorderLayout.EAST);
+        JPanel btnWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 10));
+        btnWrapper.setOpaque(false);
+        btnWrapper.add(addBtn);
+        header.add(btnWrapper, BorderLayout.EAST);
 
         JPanel northPanel = new JPanel(new BorderLayout(0, 20));
         northPanel.setOpaque(false);
@@ -67,7 +74,14 @@ public class MenuPanel extends JPanel {
         categories.add(0, "Todos");
         
         for (String cat : categories) {
-            JButton chip = new JButton(cat);
+            JButton chip = new JButton(cat) {
+                @Override
+                public Dimension getPreferredSize() {
+                    Dimension d = super.getPreferredSize();
+                    d.height = 34;
+                    return d;
+                }
+            };
             chip.setFont(UIPalette.FONT_LABEL.deriveFont(12f));
             chip.putClientProperty("JButton.buttonType", "roundRect");
             chip.putClientProperty("categoryName", cat);
@@ -122,12 +136,66 @@ public class MenuPanel extends JPanel {
         };
         refreshTable(null);
 
-        table = new JTable(model);
+        table = new JTable(model) {
+            private int hoveredRow = -1;
+            {
+                addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+                    @Override
+                    public void mouseMoved(java.awt.event.MouseEvent e) {
+                        int row = rowAtPoint(e.getPoint());
+                        if (row != hoveredRow) {
+                            hoveredRow = row;
+                            repaint();
+                        }
+                    }
+                });
+                addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent e) {
+                        hoveredRow = -1;
+                        repaint();
+                    }
+                });
+            }
+            @Override
+            public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                if (!isRowSelected(row)) {
+                    if (row == hoveredRow) {
+                        c.setBackground(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x334155) : new Color(0xF1F5F9));
+                    } else if (row % 2 == 0) {
+                        c.setBackground(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x283548) : new Color(0xF8FAFC));
+                    } else {
+                        c.setBackground(UIPalette.SURFACE);
+                    }
+                }
+                return c;
+            }
+        };
         table.setRowHeight(50);
+        table.setFillsViewportHeight(true);
+        
+        // Oculta a coluna ID (UUID) da tabela do Cardápio para uma visualização mais limpa
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setWidth(0);
 
         // Setup Action Column
         TableActionCell actionCell = new TableActionCell(
-                e -> JOptionPane.showMessageDialog(this, "Edição indisponível na versão demo."),
+                e -> {
+                    // Modo edição: busca o produto pelo ID e abre ProductForm preenchido
+                    int row = Integer.parseInt(e.getActionCommand());
+                    if (row < 0 || row >= model.getRowCount()) return;
+                    table.getSelectionModel().setSelectionInterval(row, row);
+                    String id = (String) model.getValueAt(row, 0);
+                    Product toEdit = DataRepository.getInstance().getProducts().stream()
+                            .filter(p -> p.getId().equals(id))
+                            .findFirst().orElse(null);
+                    if (toEdit != null) {
+                        Window owner = SwingUtilities.getWindowAncestor(this);
+                        new ProductForm((Frame) owner, () -> refreshTable(selectedCategory), toEdit).setVisible(true);
+                    }
+                },
                 e -> {
                     int row = Integer.parseInt(e.getActionCommand());
                     if (row < 0 || row >= model.getRowCount())
@@ -150,7 +218,7 @@ public class MenuPanel extends JPanel {
         table.setShowVerticalLines(false);
         table.setGridColor(UIPalette.BORDER);
 
-        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
         scrollPane.getViewport().setBackground(Color.WHITE);
         scrollPane.setBorder(BorderFactory.createLineBorder(UIPalette.BORDER));
@@ -224,11 +292,35 @@ public class MenuPanel extends JPanel {
                     || (selectedCategory != null && selectedCategory.equals(cat));
             if (active) {
                 chip.setBackground(UIPalette.AMBER);
-                chip.setForeground(UIPalette.ON_BACKGROUND);
+                chip.setForeground(new Color(0x091D2E)); // Garante contraste escuro contra fundo âmbar
             } else {
-                chip.setBackground(Color.WHITE);
+                chip.setBackground(UIPalette.SURFACE);
                 chip.setForeground(UIPalette.ON_BACKGROUND);
             }
         }
+    }
+
+    public void updateThemeColors() {
+        setBackground(UIPalette.BACKGROUND);
+        if (title != null) title.setForeground(UIPalette.ON_BACKGROUND);
+        if (sub != null) sub.setForeground(UIPalette.TEXT_SECONDARY);
+
+        // Atualiza os chips de categoria
+        updateChipStyles();
+
+        // Atualiza tabela
+        if (table != null) {
+            table.setBackground(UIPalette.SURFACE);
+            table.setForeground(UIPalette.ON_BACKGROUND);
+            table.getTableHeader().setBackground(UIPalette.SURFACE);
+            table.getTableHeader().setForeground(UIPalette.ON_BACKGROUND);
+            table.setGridColor(UIPalette.BORDER);
+        }
+        if (scrollPane != null) {
+            scrollPane.setBorder(BorderFactory.createLineBorder(UIPalette.BORDER));
+            scrollPane.getViewport().setBackground(UIPalette.SURFACE);
+        }
+
+        repaint();
     }
 }

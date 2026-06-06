@@ -6,14 +6,18 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import com.mycompany.saidera_project.data.DataRepository;
 import com.mycompany.saidera_project.models.StockItem;
-import java.util.ArrayList;
 import java.util.List;
 import java.awt.*;
 
 public class InventoryPanel extends JPanel {
     private DefaultTableModel model;
     private JPanel metricsWrapper;
-    private List<StockItem> currentItems = new ArrayList<>();
+    private List<StockItem> currentItems = new java.util.ArrayList<>();
+
+    private JLabel title;
+    private JLabel sub;
+    private JTable table;
+    private JScrollPane scrollPane;
 
     public InventoryPanel() {
         setLayout(new BorderLayout());
@@ -26,12 +30,12 @@ public class InventoryPanel extends JPanel {
 
         JPanel titlePanel = new JPanel(new GridLayout(2, 1));
         titlePanel.setOpaque(false);
-        JLabel title = new JLabel("Controle de Estoque");
+        title = new JLabel("Controle de Estoque");
         title.setFont(UIPalette.FONT_DISPLAY.deriveFont(32f));
         title.setForeground(UIPalette.ON_BACKGROUND);
         titlePanel.add(title);
 
-        JLabel sub = new JLabel("Visão centralizada de insumos e barris.");
+        sub = new JLabel("Visão centralizada de insumos e barris.");
         sub.setFont(UIPalette.FONT_BODY);
         sub.setForeground(UIPalette.TEXT_SECONDARY);
         titlePanel.add(sub);
@@ -78,28 +82,50 @@ public class InventoryPanel extends JPanel {
             }
         };
         
-        JTable table = new JTable(model);
-        table.setRowHeight(50);
-        table.setFont(UIPalette.FONT_BODY);
-        table.getTableHeader().setFont(UIPalette.FONT_LABEL);
-
-        // Custom Renderer for default columns
-        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+        table = new JTable(model) {
+            private int hoveredRow = -1;
+            {
+                addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+                    @Override
+                    public void mouseMoved(java.awt.event.MouseEvent e) {
+                        int row = rowAtPoint(e.getPoint());
+                        if (row != hoveredRow) {
+                            hoveredRow = row;
+                            repaint();
+                        }
+                    }
+                });
+                addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent e) {
+                        hoveredRow = -1;
+                        repaint();
+                    }
+                });
+            }
             @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                    boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
                 boolean low = row >= 0 && row < currentItems.size() && currentItems.get(row).isLowStock();
-                if (isSelected) {
-                    c.setBackground(table.getSelectionBackground());
-                    c.setForeground(table.getSelectionForeground());
-                } else {
+                if (!isRowSelected(row)) {
                     c.setForeground(UIPalette.ON_BACKGROUND);
-                    c.setBackground(low ? new Color(0xFFF1F1) : Color.WHITE);
+                    if (row == hoveredRow) {
+                        c.setBackground(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x334155) : new Color(0xF1F5F9));
+                    } else if (low) {
+                        c.setBackground(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x450A0A) : new Color(0xFFF1F1));
+                    } else if (row % 2 == 0) {
+                        c.setBackground(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x283548) : new Color(0xF8FAFC));
+                    } else {
+                        c.setBackground(UIPalette.SURFACE);
+                    }
                 }
                 return c;
             }
-        });
+        };
+        table.setRowHeight(50);
+        table.setFont(UIPalette.FONT_BODY);
+        table.getTableHeader().setFont(UIPalette.FONT_LABEL);
+        table.setFillsViewportHeight(true);
 
         refreshTable();
 
@@ -134,7 +160,15 @@ public class InventoryPanel extends JPanel {
                     if (isSelected) {
                         bar.setBackground(table.getSelectionBackground());
                     } else {
-                        bar.setBackground(item.isLowStock() ? new Color(0xFFF1F1) : Color.WHITE);
+                        Color rowBg;
+                        if (item.isLowStock()) {
+                            rowBg = com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x450A0A) : new Color(0xFFF1F1);
+                        } else if (row % 2 == 0) {
+                            rowBg = com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x283548) : new Color(0xF8FAFC);
+                        } else {
+                            rowBg = UIPalette.SURFACE;
+                        }
+                        bar.setBackground(rowBg);
                     }
                     return bar;
                 }
@@ -154,7 +188,7 @@ public class InventoryPanel extends JPanel {
         table.getColumnModel().getColumn(3).setPreferredWidth(220);
         table.getColumnModel().getColumn(4).setPreferredWidth(120);
 
-        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane = new JScrollPane(table);
         scrollPane.getViewport().setBackground(Color.WHITE);
         scrollPane.setBorder(BorderFactory.createLineBorder(UIPalette.BORDER));
         centerPanel.add(scrollPane, BorderLayout.CENTER);
@@ -196,7 +230,7 @@ public class InventoryPanel extends JPanel {
 
     private JPanel createMetricCard(String title, String val, String sub, Color accentColor, String iconText, Color iconBg) {
         JPanel card = new JPanel(new BorderLayout(15, 0));
-        card.setBackground(Color.WHITE);
+        card.setBackground(UIPalette.SURFACE);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UIPalette.BORDER),
                 new EmptyBorder(15, 20, 15, 20)));
@@ -207,8 +241,12 @@ public class InventoryPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(iconBg);
-                g2.fillOval(0, 0, getWidth(), getHeight());
+                Color bg = com.formdev.flatlaf.FlatLaf.isLafDark() ? getDarkIconBg(iconBg) : iconBg;
+                g2.setColor(bg);
+                int size = Math.min(getWidth(), getHeight());
+                int x = (getWidth() - size) / 2;
+                int y = (getHeight() - size) / 2;
+                g2.fillOval(x, y, size, size);
                 g2.dispose();
             }
         };
@@ -226,7 +264,7 @@ public class InventoryPanel extends JPanel {
 
         JLabel t = new JLabel(title.toUpperCase());
         t.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
-        t.setForeground(Color.GRAY);
+        t.setForeground(UIPalette.TEXT_SECONDARY);
         textContainer.add(t);
 
         JLabel v = new JLabel(val);
@@ -236,7 +274,7 @@ public class InventoryPanel extends JPanel {
 
         JLabel s = new JLabel(sub);
         s.setFont(UIPalette.FONT_LABEL.deriveFont(Font.PLAIN, 10f));
-        s.setForeground(Color.GRAY);
+        s.setForeground(UIPalette.TEXT_SECONDARY);
         textContainer.add(s);
 
         card.add(textContainer, BorderLayout.CENTER);
@@ -305,5 +343,37 @@ public class InventoryPanel extends JPanel {
         public boolean isCellEditable(java.util.EventObject e) {
             return true;
         }
+    }
+
+    private Color getDarkIconBg(Color lightBg) {
+        if (lightBg.equals(new Color(0xEFF6FF))) return new Color(0x1E3A8A); // blue
+        if (lightBg.equals(new Color(0xECFDF5))) return new Color(0x064E3B); // green
+        if (lightBg.equals(new Color(0xFEF2F2))) return new Color(0x7F1D1D); // red
+        if (lightBg.equals(new Color(0xFFFBEB))) return new Color(0x78350F); // amber
+        return lightBg;
+    }
+
+    public void updateThemeColors() {
+        setBackground(UIPalette.BACKGROUND);
+        if (title != null) title.setForeground(UIPalette.ON_BACKGROUND);
+        if (sub != null) sub.setForeground(UIPalette.TEXT_SECONDARY);
+
+        // Recria as métricas no topo com o tema correto
+        refreshTable();
+
+        // Atualiza a tabela
+        if (table != null) {
+            table.setBackground(UIPalette.SURFACE);
+            table.setForeground(UIPalette.ON_BACKGROUND);
+            table.getTableHeader().setBackground(UIPalette.SURFACE);
+            table.getTableHeader().setForeground(UIPalette.ON_BACKGROUND);
+            table.setGridColor(UIPalette.BORDER);
+        }
+        if (scrollPane != null) {
+            scrollPane.setBorder(BorderFactory.createLineBorder(UIPalette.BORDER));
+            scrollPane.getViewport().setBackground(UIPalette.SURFACE);
+        }
+
+        repaint();
     }
 }
