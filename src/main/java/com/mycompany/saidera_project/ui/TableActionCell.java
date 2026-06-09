@@ -119,4 +119,10 @@ public class TableActionCell extends AbstractCellEditor implements TableCellRend
     public Object getCellEditorValue() {
         return null;
     }
+
+    public void updateUI() {
+        if (panel != null) panel.updateUI();
+        if (editBtn != null) editBtn.updateUI();
+        if (deleteBtn != null) deleteBtn.updateUI();
+    }
 }

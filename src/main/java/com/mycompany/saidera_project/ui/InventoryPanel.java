@@ -18,6 +18,8 @@ public class InventoryPanel extends JPanel {
     private JLabel sub;
     private JTable table;
     private JScrollPane scrollPane;
+    private ProgressBarRenderer progressBarRenderer;
+    private StockActionCell stockActionCell;
 
     public InventoryPanel() {
         setLayout(new BorderLayout());
@@ -130,56 +132,13 @@ public class InventoryPanel extends JPanel {
         refreshTable();
 
         // Custom Renderer for column 3: JProgressBar
-        table.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
-            private final JProgressBar bar = new JProgressBar(0, 100);
-            {
-                bar.setStringPainted(true);
-                bar.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
-            }
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                    boolean hasFocus, int row, int column) {
-                if (value instanceof StockItem) {
-                    StockItem item = (StockItem) value;
-                    int cur = item.getCurrentLevel();
-                    int min = item.getMinimumLevel();
-                    int max = Math.max(min * 2, 10);
-                    int pct = Math.min(100, (int) (((double) cur / Math.max(1, max)) * 100));
-                    
-                    bar.setValue(pct);
-                    bar.setString(cur + " / " + min + " " + item.getUnit());
-                    
-                    if (item.isLowStock()) {
-                        bar.setForeground(UIPalette.ERROR);
-                    } else if (cur < min * 1.5) {
-                        bar.setForeground(UIPalette.WARNING);
-                    } else {
-                        bar.setForeground(UIPalette.SUCCESS);
-                    }
-                    
-                    if (isSelected) {
-                        bar.setBackground(table.getSelectionBackground());
-                    } else {
-                        Color rowBg;
-                        if (item.isLowStock()) {
-                            rowBg = com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x450A0A) : new Color(0xFFF1F1);
-                        } else if (row % 2 == 0) {
-                            rowBg = com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x283548) : new Color(0xF8FAFC);
-                        } else {
-                            rowBg = UIPalette.SURFACE;
-                        }
-                        bar.setBackground(rowBg);
-                    }
-                    return bar;
-                }
-                return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            }
-        });
+        progressBarRenderer = new ProgressBarRenderer();
+        table.getColumnModel().getColumn(3).setCellRenderer(progressBarRenderer);
 
         // Custom Renderer & Editor for Actions Column
-        StockActionCell actionCell = new StockActionCell();
-        table.getColumnModel().getColumn(4).setCellRenderer(actionCell);
-        table.getColumnModel().getColumn(4).setCellEditor(actionCell);
+        stockActionCell = new StockActionCell();
+        table.getColumnModel().getColumn(4).setCellRenderer(stockActionCell);
+        table.getColumnModel().getColumn(4).setCellEditor(stockActionCell);
 
         // Adjust column widths
         table.getColumnModel().getColumn(0).setPreferredWidth(250);
@@ -322,6 +281,12 @@ public class InventoryPanel extends JPanel {
             panel.add(minusBtn);
         }
 
+        public void updateUI() {
+            if (panel != null) panel.updateUI();
+            if (plusBtn != null) plusBtn.updateUI();
+            if (minusBtn != null) minusBtn.updateUI();
+        }
+
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             this.currentItem = (StockItem) value;
@@ -345,6 +310,122 @@ public class InventoryPanel extends JPanel {
         }
     }
 
+    private static class ProgressBarRenderer implements javax.swing.table.TableCellRenderer {
+
+        // Painel que desenha a barra de progresso manualmente via Graphics2D.
+        // Isso evita que o FlatLaf sobrescreva as cores, pois setBackground/setForeground
+        // em JProgressBar são ignorados pelo LAF.
+        private static final class PaintPanel extends JPanel {
+            Color trackBg   = Color.LIGHT_GRAY;
+            Color fillColor = UIPalette.SUCCESS;
+            int   percent   = 0;
+            String label    = "";
+
+            PaintPanel() {
+                super(null);
+                setOpaque(true);
+            }
+
+            void update(int pct, Color fill, Color track, Color bg, String lbl) {
+                this.percent   = pct;
+                this.fillColor = fill;
+                this.trackBg   = track;
+                this.label     = lbl;
+                setBackground(bg);
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                // 1. Background da linha
+                g.setColor(getBackground());
+                g.fillRect(0, 0, getWidth(), getHeight());
+
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // 2. Área da barra com padding
+                int pad  = 10;
+                int barH = 16;
+                int x    = pad;
+                int y    = (getHeight() - barH) / 2;
+                int w    = getWidth() - pad * 2;
+                if (w <= 0) { g2.dispose(); return; }
+
+                // 3. Track
+                g2.setColor(trackBg);
+                g2.fillRoundRect(x, y, w, barH, barH, barH);
+
+                // 4. Fill
+                int fillW = (int) (w * Math.min(percent, 100) / 100.0);
+                if (fillW > 0) {
+                    g2.setColor(fillColor);
+                    g2.fillRoundRect(x, y, fillW, barH, barH, barH);
+                }
+
+                // 5. Label centralizado
+                g2.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
+                FontMetrics fm = g2.getFontMetrics();
+                // escolhe contraste: branco sobre track escuro, escuro sobre track claro
+                float brightness = (trackBg.getRed() * 0.299f + trackBg.getGreen() * 0.587f + trackBg.getBlue() * 0.114f) / 255f;
+                g2.setColor(brightness < 0.5f ? Color.WHITE : new Color(0x1E293B));
+                int tx = x + (w - fm.stringWidth(label)) / 2;
+                int ty = y + (barH + fm.getAscent() - fm.getDescent()) / 2 - 1;
+                g2.drawString(label, tx, ty);
+
+                g2.dispose();
+            }
+        }
+
+        private final PaintPanel panel = new PaintPanel();
+
+        public void updateUI() {
+            panel.updateUI();
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+            if (value instanceof StockItem) {
+                StockItem item = (StockItem) value;
+                int cur  = item.getCurrentLevel();
+                int min  = item.getMinimumLevel();
+                int max  = Math.max(min * 2, 10);
+                int pct  = Math.min(100, (int) (((double) cur / Math.max(1, max)) * 100));
+
+                // Cor do fill
+                Color fill;
+                if (item.isLowStock()) {
+                    fill = UIPalette.ERROR;
+                } else if (cur < min * 1.5) {
+                    fill = UIPalette.WARNING;
+                } else {
+                    fill = UIPalette.SUCCESS;
+                }
+
+                // Track
+                boolean dark  = com.formdev.flatlaf.FlatLaf.isLafDark();
+                Color track   = dark ? new Color(0x3A4A5A) : new Color(0xDDE3EA);
+
+                // Background da linha
+                Color bg;
+                if (isSelected) {
+                    bg = table.getSelectionBackground();
+                } else if (item.isLowStock()) {
+                    bg = dark ? new Color(0x450A0A) : new Color(0xFFF1F1);
+                } else if (row % 2 == 0) {
+                    bg = dark ? new Color(0x283548) : new Color(0xF8FAFC);
+                } else {
+                    bg = UIPalette.SURFACE;
+                }
+
+                String lbl = cur + " / " + min + " " + item.getUnit();
+                panel.update(pct, fill, track, bg, lbl);
+                return panel;
+            }
+            return new JLabel(value != null ? value.toString() : "");
+        }
+    }
+
     private Color getDarkIconBg(Color lightBg) {
         if (lightBg.equals(new Color(0xEFF6FF))) return new Color(0x1E3A8A); // blue
         if (lightBg.equals(new Color(0xECFDF5))) return new Color(0x064E3B); // green
@@ -360,6 +441,14 @@ public class InventoryPanel extends JPanel {
 
         // Recria as métricas no topo com o tema correto
         refreshTable();
+
+        // Atualiza os renderers
+        if (progressBarRenderer != null) {
+            progressBarRenderer.updateUI();
+        }
+        if (stockActionCell != null) {
+            stockActionCell.updateUI();
+        }
 
         // Atualiza a tabela
         if (table != null) {

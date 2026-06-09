@@ -75,10 +75,11 @@ public class SearchHeader extends JPanel {
                 }
                 UIPalette.updateTheme(); // Atualiza a paleta de cores estáticas
                 Window w = SwingUtilities.getWindowAncestor(SearchHeader.this);
+                if (w != null) {
+                    SwingUtilities.updateComponentTreeUI(w);
+                }
                 if (w instanceof MainFrame) {
                     ((MainFrame) w).updateThemeColors(); // Propaga a atualização
-                } else if (w != null) {
-                    SwingUtilities.updateComponentTreeUI(w);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();

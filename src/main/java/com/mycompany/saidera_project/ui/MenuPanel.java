@@ -20,6 +20,7 @@ public class MenuPanel extends JPanel {
     private JLabel title;
     private JLabel sub;
     private JScrollPane scrollPane;
+    private TableActionCell actionCell;
 
     public MenuPanel() {
         setLayout(new BorderLayout());
@@ -181,7 +182,7 @@ public class MenuPanel extends JPanel {
         table.getColumnModel().getColumn(0).setWidth(0);
 
         // Setup Action Column
-        TableActionCell actionCell = new TableActionCell(
+        actionCell = new TableActionCell(
                 e -> {
                     // Modo edição: busca o produto pelo ID e abre ProductForm preenchido
                     int row = Integer.parseInt(e.getActionCommand());
@@ -307,6 +308,11 @@ public class MenuPanel extends JPanel {
 
         // Atualiza os chips de categoria
         updateChipStyles();
+
+        // Atualiza os renderers
+        if (actionCell != null) {
+            actionCell.updateUI();
+        }
 
         // Atualiza tabela
         if (table != null) {

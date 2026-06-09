@@ -21,6 +21,7 @@ public class DashboardPanel extends JPanel {
     
     private final java.util.List<JPanel> kpiCards = new java.util.ArrayList<>();
     private final java.util.List<JPanel> shortcutCards = new java.util.ArrayList<>();
+    private AlertStatusRenderer alertStatusRenderer;
 
     private org.knowm.xchart.CategoryChart chart;
     private org.knowm.xchart.XChartPanel<org.knowm.xchart.CategoryChart> chartPanel;
@@ -294,46 +295,8 @@ public class DashboardPanel extends JPanel {
         alertTable.setFillsViewportHeight(true);
 
         // Renderer customizado com badge semântico na coluna STATUS
-        alertTable.getColumnModel().getColumn(3).setCellRenderer(new javax.swing.table.DefaultTableCellRenderer() {
-            private final JPanel badge = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x450A0A) : new Color(0xFEF2F2)); // dark red or light red bg
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
-                    g2.setColor(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x7F1D1D) : new Color(0xFECACA)); // dark red or light red border
-                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
-                    g2.dispose();
-                }
-            };
-            private final JLabel statusLabel = new JLabel();
-            {
-                badge.setOpaque(false);
-                badge.setLayout(new GridBagLayout());
-                badge.setPreferredSize(new Dimension(140, 22));
-                statusLabel.setFont(UIPalette.FONT_LABEL.deriveFont(9f));
-                statusLabel.setForeground(UIPalette.ERROR);
-                badge.add(statusLabel);
-            }
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                    boolean hasFocus, int row, int column) {
-                JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 9));
-                wrapper.setOpaque(true);
-                if (value != null) {
-                    statusLabel.setText(value.toString());
-                    statusLabel.setForeground(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0xFECACA) : UIPalette.ERROR);
-                    wrapper.add(badge);
-                }
-                if (isSelected) {
-                    wrapper.setBackground(table.getSelectionBackground());
-                } else {
-                    wrapper.setBackground(table.getBackground());
-                }
-                return wrapper;
-            }
-        });
+        alertStatusRenderer = new AlertStatusRenderer();
+        alertTable.getColumnModel().getColumn(3).setCellRenderer(alertStatusRenderer);
 
         alertScroll = new JScrollPane(alertTable);
         alertScroll.setPreferredSize(new Dimension(0, 150));
@@ -574,6 +537,11 @@ public class DashboardPanel extends JPanel {
             updateShortcutStyle(card);
         }
 
+        // Atualiza renderer
+        if (alertStatusRenderer != null) {
+            alertStatusRenderer.updateUI();
+        }
+
         // Atualiza Tabela de Alertas e Container
         if (cardContainer != null) {
             cardContainer.setBackground(UIPalette.SURFACE);
@@ -615,5 +583,58 @@ public class DashboardPanel extends JPanel {
         }
 
         repaint();
+    }
+
+    private static class AlertStatusRenderer extends javax.swing.table.DefaultTableCellRenderer {
+        private final JPanel badge = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x450A0A) : new Color(0xFEF2F2)); // dark red or light red bg
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.setColor(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0x7F1D1D) : new Color(0xFECACA)); // dark red or light red border
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                g2.dispose();
+            }
+        };
+        private final JLabel statusLabel = new JLabel();
+
+        public AlertStatusRenderer() {
+            badge.setOpaque(false);
+            badge.setLayout(new GridBagLayout());
+            badge.setPreferredSize(new Dimension(140, 22));
+            statusLabel.setFont(UIPalette.FONT_LABEL.deriveFont(9f));
+            statusLabel.setForeground(UIPalette.ERROR);
+            badge.add(statusLabel);
+        }
+
+        @Override
+        public void updateUI() {
+            super.updateUI();
+            if (badge != null) badge.updateUI();
+            if (statusLabel != null) {
+                statusLabel.updateUI();
+                statusLabel.setFont(UIPalette.FONT_LABEL.deriveFont(9f));
+            }
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+            JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 9));
+            wrapper.setOpaque(true);
+            if (value != null) {
+                statusLabel.setText(value.toString());
+                statusLabel.setForeground(com.formdev.flatlaf.FlatLaf.isLafDark() ? new Color(0xFECACA) : UIPalette.ERROR);
+                wrapper.add(badge);
+            }
+            if (isSelected) {
+                wrapper.setBackground(table.getSelectionBackground());
+            } else {
+                wrapper.setBackground(table.getBackground());
+            }
+            return wrapper;
+        }
     }
 }
