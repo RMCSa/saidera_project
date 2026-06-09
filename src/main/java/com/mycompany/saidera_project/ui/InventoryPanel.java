@@ -241,7 +241,7 @@ public class InventoryPanel extends JPanel {
     }
 
     // Custom Cell Editor and Renderer for Row-level actions
-    private class StockActionCell extends AbstractCellEditor implements javax.swing.table.TableCellRenderer, javax.swing.table.TableCellEditor {
+    class StockActionCell extends AbstractCellEditor implements javax.swing.table.TableCellRenderer, javax.swing.table.TableCellEditor {
         private final JPanel panel;
         private final JButton plusBtn;
         private final JButton minusBtn;
@@ -310,73 +310,69 @@ public class InventoryPanel extends JPanel {
         }
     }
 
-    private static class ProgressBarRenderer implements javax.swing.table.TableCellRenderer {
+    static final class ProgressBarPaintPanel extends JPanel {
+        Color trackBg   = Color.LIGHT_GRAY;
+        Color fillColor = UIPalette.SUCCESS;
+        int   percent   = 0;
+        String label    = "";
 
-        // Painel que desenha a barra de progresso manualmente via Graphics2D.
-        // Isso evita que o FlatLaf sobrescreva as cores, pois setBackground/setForeground
-        // em JProgressBar são ignorados pelo LAF.
-        private static final class PaintPanel extends JPanel {
-            Color trackBg   = Color.LIGHT_GRAY;
-            Color fillColor = UIPalette.SUCCESS;
-            int   percent   = 0;
-            String label    = "";
-
-            PaintPanel() {
-                super(null);
-                setOpaque(true);
-            }
-
-            void update(int pct, Color fill, Color track, Color bg, String lbl) {
-                this.percent   = pct;
-                this.fillColor = fill;
-                this.trackBg   = track;
-                this.label     = lbl;
-                setBackground(bg);
-            }
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                // 1. Background da linha
-                g.setColor(getBackground());
-                g.fillRect(0, 0, getWidth(), getHeight());
-
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                // 2. Área da barra com padding
-                int pad  = 10;
-                int barH = 16;
-                int x    = pad;
-                int y    = (getHeight() - barH) / 2;
-                int w    = getWidth() - pad * 2;
-                if (w <= 0) { g2.dispose(); return; }
-
-                // 3. Track
-                g2.setColor(trackBg);
-                g2.fillRoundRect(x, y, w, barH, barH, barH);
-
-                // 4. Fill
-                int fillW = (int) (w * Math.min(percent, 100) / 100.0);
-                if (fillW > 0) {
-                    g2.setColor(fillColor);
-                    g2.fillRoundRect(x, y, fillW, barH, barH, barH);
-                }
-
-                // 5. Label centralizado
-                g2.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
-                FontMetrics fm = g2.getFontMetrics();
-                // escolhe contraste: branco sobre track escuro, escuro sobre track claro
-                float brightness = (trackBg.getRed() * 0.299f + trackBg.getGreen() * 0.587f + trackBg.getBlue() * 0.114f) / 255f;
-                g2.setColor(brightness < 0.5f ? Color.WHITE : new Color(0x1E293B));
-                int tx = x + (w - fm.stringWidth(label)) / 2;
-                int ty = y + (barH + fm.getAscent() - fm.getDescent()) / 2 - 1;
-                g2.drawString(label, tx, ty);
-
-                g2.dispose();
-            }
+        ProgressBarPaintPanel() {
+            super(null);
+            setOpaque(true);
         }
 
-        private final PaintPanel panel = new PaintPanel();
+        void update(int pct, Color fill, Color track, Color bg, String lbl) {
+            this.percent   = pct;
+            this.fillColor = fill;
+            this.trackBg   = track;
+            this.label     = lbl;
+            setBackground(bg);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            // 1. Background da linha
+            g.setColor(getBackground());
+            g.fillRect(0, 0, getWidth(), getHeight());
+
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // 2. Área da barra com padding
+            int pad  = 10;
+            int barH = 16;
+            int x    = pad;
+            int y    = (getHeight() - barH) / 2;
+            int w    = getWidth() - pad * 2;
+            if (w <= 0) { g2.dispose(); return; }
+
+            // 3. Track
+            g2.setColor(trackBg);
+            g2.fillRoundRect(x, y, w, barH, barH, barH);
+
+            // 4. Fill
+            int fillW = (int) (w * Math.min(percent, 100) / 100.0);
+            if (fillW > 0) {
+                g2.setColor(fillColor);
+                g2.fillRoundRect(x, y, fillW, barH, barH, barH);
+            }
+
+            // 5. Label centralizado
+            g2.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
+            FontMetrics fm = g2.getFontMetrics();
+            // escolhe contraste: branco sobre track escuro, escuro sobre track claro
+            float brightness = (trackBg.getRed() * 0.299f + trackBg.getGreen() * 0.587f + trackBg.getBlue() * 0.114f) / 255f;
+            g2.setColor(brightness < 0.5f ? Color.WHITE : new Color(0x1E293B));
+            int tx = x + (w - fm.stringWidth(label)) / 2;
+            int ty = y + (barH + fm.getAscent() - fm.getDescent()) / 2 - 1;
+            g2.drawString(label, tx, ty);
+
+            g2.dispose();
+        }
+    }
+
+    static class ProgressBarRenderer implements javax.swing.table.TableCellRenderer {
+        private final ProgressBarPaintPanel panel = new ProgressBarPaintPanel();
 
         public void updateUI() {
             panel.updateUI();

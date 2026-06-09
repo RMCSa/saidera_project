@@ -115,9 +115,12 @@ public class DashboardPanel extends JPanel {
 
         JButton exportBtn = new JButton("Exportar Dados");
         exportBtn.setFont(UIPalette.FONT_LABEL);
-        exportBtn.setEnabled(false);
-        exportBtn.setToolTipText("Disponível apenas na versão completa (demo).");
+        exportBtn.addActionListener(e -> {
+            Window owner = SwingUtilities.getWindowAncestor(DashboardPanel.this);
+            new ExportDialog((Frame) owner).setVisible(true);
+        });
         header.add(exportBtn);
+
 
         add(header, BorderLayout.NORTH);
 
