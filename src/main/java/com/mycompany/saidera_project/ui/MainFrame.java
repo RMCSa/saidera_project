@@ -86,7 +86,7 @@ public class MainFrame extends JFrame {
         logoEmoji.setFont(logoEmoji.getFont().deriveFont(18f));
         logoBox.add(logoEmoji);
 
-        JLabel logoBrand = new JLabel("Saidera");
+        JLabel logoBrand = new JLabel("Saidera Desktop");
         logoBrand.setFont(UIPalette.FONT_TITLE.deriveFont(22f));
         logoBrand.setForeground(Color.WHITE);
 
@@ -99,7 +99,7 @@ public class MainFrame extends JFrame {
         addSectionLabel(navContainer, "Principal");
         addNavItem(navContainer, "📊  Dashboard", "Dashboard");
         addNavItem(navContainer, "🍴  Cardápio", "Menu");
-        addNavItem(navContainer, "📦  Estoque", "Inventory");
+        addNavItem(navContainer, "📦  Controle de Estoque", "Inventory");
 
         navContainer.add(Box.createVerticalStrut(20));
         addSectionLabel(navContainer, "Administração");
@@ -251,6 +251,21 @@ public class MainFrame extends JFrame {
         }
 
         container.add(item);
+    }
+
+    public void refreshData() {
+        String currentCard = "Dashboard";
+        if (activeSidebarItem != null) {
+            currentCard = (String) activeSidebarItem.getClientProperty("cardName");
+        }
+        
+        MainFrame newFrame = new MainFrame();
+        newFrame.setLocation(this.getLocation());
+        newFrame.setSize(this.getSize());
+        newFrame.showPanel(currentCard);
+        
+        this.dispose();
+        newFrame.setVisible(true);
     }
 
     public void updateThemeColors() {

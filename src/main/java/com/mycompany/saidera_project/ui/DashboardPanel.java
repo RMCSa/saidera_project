@@ -18,6 +18,7 @@ public class DashboardPanel extends JPanel {
     private JPanel emptyState;
     private JLabel emptyLabel;
     private JLabel warningBannerText;
+    private JScrollPane mainScroll;
     
     private final java.util.List<JPanel> kpiCards = new java.util.ArrayList<>();
     private final java.util.List<JPanel> shortcutCards = new java.util.ArrayList<>();
@@ -97,13 +98,31 @@ public class DashboardPanel extends JPanel {
         // Painel do gráfico
         chartPanel = new org.knowm.xchart.XChartPanel<>(chart);
         chartPanel.setBorder(BorderFactory.createLineBorder(UIPalette.BORDER));
+        chartPanel.setPreferredSize(new Dimension(600, 350));
         return chartPanel;
+    }
+
+    private class ScrollablePanel extends JPanel implements Scrollable {
+        public ScrollablePanel(LayoutManager layout) { super(layout); }
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public int getScrollableUnitIncrement(Rectangle r, int o, int d) { return 20; }
+        @Override public int getScrollableBlockIncrement(Rectangle r, int o, int d) { return 50; }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() { 
+            if (getParent() instanceof JViewport) {
+                return getParent().getHeight() > getPreferredSize().height;
+            }
+            return false;
+        }
     }
 
     public DashboardPanel() {
         setLayout(new BorderLayout());
         setBackground(UIPalette.BACKGROUND);
-        setBorder(new EmptyBorder(30, 40, 30, 40));
+        
+        ScrollablePanel contentPanel = new ScrollablePanel(new BorderLayout());
+        contentPanel.setOpaque(false);
+        contentPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
 
         // Header
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 5));
@@ -122,7 +141,7 @@ public class DashboardPanel extends JPanel {
         header.add(exportBtn);
 
 
-        add(header, BorderLayout.NORTH);
+        contentPanel.add(header, BorderLayout.NORTH);
 
         // Main Dashboard Body (Left: KPIs + Chart, Right: Shortcuts)
         JPanel body = new JPanel(new BorderLayout(30, 0));
@@ -324,7 +343,15 @@ public class DashboardPanel extends JPanel {
         southPanel.add(cardContainer, BorderLayout.CENTER);
         body.add(southPanel, BorderLayout.SOUTH);
 
-        add(body, BorderLayout.CENTER);
+        contentPanel.add(body, BorderLayout.CENTER);
+
+        mainScroll = new JScrollPane(contentPanel);
+        mainScroll.setBorder(BorderFactory.createEmptyBorder());
+        mainScroll.getViewport().setBackground(UIPalette.BACKGROUND);
+        mainScroll.getVerticalScrollBar().setUnitIncrement(16);
+        mainScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        
+        add(mainScroll, BorderLayout.CENTER);
     }
 
     private JPanel createShortcut(String title, String sub, String icon) {
@@ -520,6 +547,9 @@ public class DashboardPanel extends JPanel {
 
     public void updateThemeColors() {
         setBackground(UIPalette.BACKGROUND);
+        if (mainScroll != null) {
+            mainScroll.getViewport().setBackground(UIPalette.BACKGROUND);
+        }
         if (title != null) title.setForeground(UIPalette.ON_BACKGROUND);
         if (shortcutTitle != null) shortcutTitle.setForeground(UIPalette.ON_BACKGROUND);
 

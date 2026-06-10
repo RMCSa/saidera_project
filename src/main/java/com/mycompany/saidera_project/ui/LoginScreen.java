@@ -150,7 +150,7 @@ public class LoginScreen extends JFrame {
         // Login Button
         JButton loginBtn = new JButton("Entrar no Sistema");
         loginBtn.setBackground(UIPalette.AMBER);
-        loginBtn.setForeground(UIPalette.ON_BACKGROUND);
+        loginBtn.setForeground(UIPalette.ON_AMBER);
         loginBtn.setFont(UIPalette.FONT_LABEL.deriveFont(16f));
         loginBtn.setPreferredSize(new Dimension(300, 50));
         loginBtn.setFocusPainted(false);
@@ -159,15 +159,15 @@ public class LoginScreen extends JFrame {
         gbcR.insets = new Insets(15, 50, 10, 50);
         rightPanel.add(loginBtn, gbcR);
 
-        // Demo indicator
-        JPanel sslPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        sslPanel.setOpaque(false);
-        JLabel sslLabel = new JLabel("Modo demonstração com dados mockados");
-        sslLabel.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
-        sslLabel.setForeground(Color.LIGHT_GRAY);
-        sslPanel.add(sslLabel);
-        gbcR.gridy = 9;
-        rightPanel.add(sslPanel, gbcR);
+        // // Demo indicator
+        // JPanel sslPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        // sslPanel.setOpaque(false);
+        // JLabel sslLabel = new JLabel("Modo demonstração com dados mockados");
+        // sslLabel.setFont(UIPalette.FONT_LABEL.deriveFont(10f));
+        // sslLabel.setForeground(Color.LIGHT_GRAY);
+        // sslPanel.add(sslLabel);
+        // gbcR.gridy = 9;
+        // rightPanel.add(sslPanel, gbcR);
 
         loginBtn.addActionListener((ActionEvent e) -> {
             String email = userField.getText();

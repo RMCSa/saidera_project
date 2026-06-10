@@ -55,6 +55,22 @@ public class SearchHeader extends JPanel {
 
         rightArea.add(profile);
 
+        // Botão de atualizar
+        JButton refreshBtn = new JButton("🔄");
+        refreshBtn.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        refreshBtn.setFocusPainted(false);
+        refreshBtn.setBorderPainted(false);
+        refreshBtn.setContentAreaFilled(false);
+        refreshBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        refreshBtn.setToolTipText("Atualizar dados da página");
+        refreshBtn.addActionListener(e -> {
+            Window w = SwingUtilities.getWindowAncestor(SearchHeader.this);
+            if (w instanceof MainFrame) {
+                ((MainFrame) w).refreshData();
+            }
+        });
+        rightArea.add(refreshBtn);
+
         // Botão de toggle de tema claro/escuro
         JButton themeBtn = new JButton(isDarkMode ? "☀️" : "🌙");
         themeBtn.setFont(new Font("SansSerif", Font.PLAIN, 16));

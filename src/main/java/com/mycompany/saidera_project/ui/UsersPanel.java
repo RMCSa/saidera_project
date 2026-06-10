@@ -60,6 +60,7 @@ public class UsersPanel extends JPanel {
 
         JButton addBtn = new JButton("+ Novo Usuário");
         addBtn.setBackground(UIPalette.AMBER);
+        addBtn.setForeground(UIPalette.ON_AMBER);
         addBtn.setFont(UIPalette.FONT_LABEL);
 
         User currentUser = SessionManager.getInstance().getCurrentUser();

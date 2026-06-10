@@ -24,6 +24,7 @@ public class UIPalette {
     // Text Colors
     public static Color ON_BACKGROUND = new Color(0x091D2E);
     public static final Color ON_PRIMARY = Color.WHITE;
+    public static final Color ON_AMBER = new Color(0x091D2E); // Dark text for Amber backgrounds
     public static Color TEXT_SECONDARY = new Color(0x504532);
     
     // Status Colors

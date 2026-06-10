@@ -47,6 +47,7 @@ public class MenuPanel extends JPanel {
 
         JButton addBtn = new JButton("+ Novo Produto");
         addBtn.setBackground(UIPalette.AMBER);
+        addBtn.setForeground(UIPalette.ON_AMBER);
         addBtn.setFont(UIPalette.FONT_LABEL);
         addBtn.addActionListener(e -> {
             Window owner = SwingUtilities.getWindowAncestor(this);
@@ -293,7 +294,7 @@ public class MenuPanel extends JPanel {
                     || (selectedCategory != null && selectedCategory.equals(cat));
             if (active) {
                 chip.setBackground(UIPalette.AMBER);
-                chip.setForeground(new Color(0x091D2E)); // Garante contraste escuro contra fundo âmbar
+                chip.setForeground(UIPalette.ON_AMBER); // Garante contraste escuro contra fundo âmbar
             } else {
                 chip.setBackground(UIPalette.SURFACE);
                 chip.setForeground(UIPalette.ON_BACKGROUND);

@@ -49,14 +49,25 @@ public class InventoryPanel extends JPanel {
         JButton outBtn = new JButton("Registrar Saída");
         outBtn.addActionListener(e -> {
             Window owner = SwingUtilities.getWindowAncestor(this);
-            new StockTransactionForm((Frame) owner, false, this::refreshTable).setVisible(true);
+            StockItem selected = getSelectedStockItem();
+            if (selected != null) {
+                new StockTransactionForm((Frame) owner, false, this::refreshTable, selected).setVisible(true);
+            } else {
+                new StockTransactionForm((Frame) owner, false, this::refreshTable).setVisible(true);
+            }
         });
 
         JButton inBtn = new JButton("Registrar Entrada");
         inBtn.setBackground(UIPalette.AMBER);
+        inBtn.setForeground(UIPalette.ON_AMBER);
         inBtn.addActionListener(e -> {
             Window owner = SwingUtilities.getWindowAncestor(this);
-            new StockTransactionForm((Frame) owner, true, this::refreshTable).setVisible(true);
+            StockItem selected = getSelectedStockItem();
+            if (selected != null) {
+                new StockTransactionForm((Frame) owner, true, this::refreshTable, selected).setVisible(true);
+            } else {
+                new StockTransactionForm((Frame) owner, true, this::refreshTable).setVisible(true);
+            }
         });
 
         btnPanel.add(outBtn);
@@ -187,6 +198,15 @@ public class InventoryPanel extends JPanel {
         }
     }
 
+    private StockItem getSelectedStockItem() {
+        if (table == null || currentItems == null) return null;
+        int row = table.getSelectedRow();
+        if (row >= 0 && row < currentItems.size()) {
+            return currentItems.get(row);
+        }
+        return null;
+    }
+
     private JPanel createMetricCard(String title, String val, String sub, Color accentColor, String iconText, Color iconBg) {
         JPanel card = new JPanel(new BorderLayout(15, 0));
         card.setBackground(UIPalette.SURFACE);
@@ -245,7 +265,7 @@ public class InventoryPanel extends JPanel {
         private final JPanel panel;
         private final JButton plusBtn;
         private final JButton minusBtn;
-        private StockItem currentItem;
+        private StockItem editingItem;
 
         public StockActionCell() {
             panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 2));
@@ -259,9 +279,10 @@ public class InventoryPanel extends JPanel {
             plusBtn.setFocusPainted(false);
             plusBtn.setToolTipText("Registrar entrada rápida");
             plusBtn.addActionListener(e -> {
+                StockItem target = editingItem;
                 fireEditingStopped();
                 Window owner = SwingUtilities.getWindowAncestor(InventoryPanel.this);
-                new StockTransactionForm((Frame) owner, true, InventoryPanel.this::refreshTable, currentItem).setVisible(true);
+                new StockTransactionForm((Frame) owner, true, InventoryPanel.this::refreshTable, target).setVisible(true);
             });
 
             minusBtn = new JButton("-");
@@ -272,9 +293,10 @@ public class InventoryPanel extends JPanel {
             minusBtn.setFocusPainted(false);
             minusBtn.setToolTipText("Registrar saída rápida");
             minusBtn.addActionListener(e -> {
+                StockItem target = editingItem;
                 fireEditingStopped();
                 Window owner = SwingUtilities.getWindowAncestor(InventoryPanel.this);
-                new StockTransactionForm((Frame) owner, false, InventoryPanel.this::refreshTable, currentItem).setVisible(true);
+                new StockTransactionForm((Frame) owner, false, InventoryPanel.this::refreshTable, target).setVisible(true);
             });
 
             panel.add(plusBtn);
@@ -289,19 +311,18 @@ public class InventoryPanel extends JPanel {
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            this.currentItem = (StockItem) value;
             return panel;
         }
 
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            this.currentItem = (StockItem) value;
+            this.editingItem = (StockItem) value;
             return panel;
         }
 
         @Override
         public Object getCellEditorValue() {
-            return currentItem;
+            return editingItem;
         }
 
         @Override

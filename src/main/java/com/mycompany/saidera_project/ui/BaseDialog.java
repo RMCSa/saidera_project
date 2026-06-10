@@ -92,7 +92,7 @@ public class BaseDialog extends JDialog {
     protected JButton createPrimaryButton(String text) {
         JButton btn = new JButton(text);
         btn.setBackground(UIPalette.AMBER);
-        btn.setForeground(UIPalette.ON_BACKGROUND);
+        btn.setForeground(UIPalette.ON_AMBER);
         btn.setFont(UIPalette.FONT_LABEL);
         btn.setPreferredSize(new Dimension(150, 40));
         return btn;
